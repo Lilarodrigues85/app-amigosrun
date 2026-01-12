@@ -60,8 +60,8 @@
 #### Capacidade da Sprint
 - **Velocity Estimada**: 20 pontos
 - **Pontos Comprometidos**: 18 pontos
-- **Pontos Concluídos**: 13 pontos
-- **Utilização**: 72% (13/18)
+- **Pontos Concluídos**: 18 pontos
+- **Utilização**: 100% (18/18)
 
 ### 🔴 Itens Críticos
 
@@ -105,55 +105,63 @@
 **Estimativa**: 5 pontos
 **Assignee**: Dalila Rodrigues
 **Epic**: Perfil de Usuário
-**Labels**: profile, firebase, avatar
+**Labels**: profile, firebase, cloudinary, glassmorphism
 
 **Descrição**: Como usuário, eu quero gerenciar meu perfil completo para me apresentar à comunidade.
 
 **Critérios de Aceitação**:
-- [x] Sistema de avatar gerado + URL externa
+- [x] Upload de foto via Cloudinary
 - [x] Campos: nome, peso, altura, meta, biografia
 - [x] Validação de dados obrigatórios
-- [x] Preview do avatar
+- [x] Design glassmorphism com background
+- [x] Checkbox para privacidade (peso/altura)
 - [x] Edição de dados existentes
-- [x] Visualização do perfil público
+- [x] Alinhamento correto de elementos
 
 **Arquivos Implementados**:
-- avatarService.js
+- cloudinaryService.js
 - userService.js
-- ProfileForm.vue
+- ProfileForm.vue (glassmorphism)
 - Profile.vue
+- public/amigos_run_banner.png
+
+**Melhorias Implementadas**:
+- ✅ Removido sistema de avatar gerado
+- ✅ Aplicado design glassmorphism
+- ✅ Corrigido alinhamento do checkbox
+- ✅ Integração com Cloudinary
 
 **Valor de Negócio**: Alto - Base para interação social
 **Impacto no Usuário**: Essencial para personalização
 
 #### PROFILE-003: Visualização de Perfil Público
 
-**Status**: 📋 Backlog
+**Status**: ✅ Concluído
 **Estimativa**: 3 pontos
 **Assignee**: Dalila Rodrigues
 
 **Descrição**: Como usuário, eu quero visualizar perfis de outros corredores para conhecer a comunidade.
 
 **Critérios de Aceitação**:
-- [ ] Página de perfil público
-- [ ] Dados visíveis: foto, nome, biografia, corridas inscritas
-- [ ] Dados privados: peso, altura (opcionais)
-- [ ] Link compartilhável do perfil
+- [x] Página de perfil público
+- [x] Dados visíveis: foto, nome, biografia
+- [x] Dados privados: peso, altura (opcionais)
+- [x] Design consistente com glassmorphism
 
 #### LAYOUT-004: Layout Base da Aplicação
 
-**Status**: 📋 Backlog
+**Status**: ✅ Concluído
 **Estimativa**: 2 pontos
 **Assignee**: Dalila Rodrigues
 
 **Descrição**: Como usuário, eu quero uma interface consistente e responsiva para navegar facilmente.
 
 **Critérios de Aceitação**:
-- [ ] Header com navegação
-- [ ] Menu responsivo
-- [ ] Footer informativo
-- [ ] Design system básico
-- [ ] Compatibilidade mobile
+- [x] Header com navegação
+- [x] Menu responsivo
+- [x] Design system glassmorphism
+- [x] Background consistente
+- [x] Compatibilidade mobile
 
 ---
 
@@ -286,13 +294,39 @@ quadrantChart
 
 ## 🐛 Backlog de Bugs
 
+### ✅ Resolvidos
+
+#### BUG-001: Alinhamento do Checkbox no Perfil
+
+**Status**: ✅ Resolvido
+**Prioridade**: Média
+**Assignee**: Dalila Rodrigues
+**Data Resolução**: 27/10/2025
+
+**Descrição**: Checkbox "Mostrar peso e altura publicamente" desalinhado com o texto
+
+**Solução Implementada**:
+- Ajustado margin-right para 0.75rem
+- Adicionado width: auto e flex-shrink: 0
+- Melhorado alinhamento visual
+
+#### BUG-002: Imagem de Background Não Carregando
+
+**Status**: ✅ Resolvido
+**Prioridade**: Baixa
+**Assignee**: Dalila Rodrigues
+**Data Resolução**: 27/10/2025
+
+**Descrição**: Banner de fundo não aparecia no ProfileForm
+
+**Solução Implementada**:
+- Movido amigos_run_banner.png para pasta public/
+- Atualizado caminho CSS para /amigos_run_banner.png
+- Testado funcionamento em desenvolvimento
+
 ### 🔴 Críticos
 
-#### BUG-001: Google Auth Travando
-
-**Status**: 🔄 Em Investigação
-**Prioridade**: Alta
-**Assignee**: Dalila Rodrigues
+*Nenhum bug crítico identificado no momento* Rodrigues
 **Labels**: auth, google, firebase
 
 **Descrição**: Login com Google trava na página do Firebase Auth Handler

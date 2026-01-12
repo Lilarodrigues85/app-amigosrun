@@ -5,101 +5,107 @@
         <h2>Meu Perfil</h2>
         
         <form @submit.prevent="handleSubmit">
+          <div class="form-columns">
+            <!-- Coluna Esquerda -->
+            <div class="form-column">
+              <!-- Avatar Section -->
+              <div class="photo-section">
+                <img :src="avatarUrl" :alt="form.name || 'Avatar'" class="avatar" />
+                
+                <div class="photo-options">
+                  <input 
+                    type="file" 
+                    ref="fileInput"
+                    @change="handleFileUpload"
+                    accept="image/*"
+                    style="display: none"
+                  />
+                  
+                  <button type="button" @click="$refs.fileInput.click()" :disabled="uploading">
+                    {{ uploading ? 'Enviando...' : 'Escolher Foto' }}
+                  </button>
+                </div>
+              </div>
 
+              <!-- Personal Info -->
+              <div class="form-group">
+                <label>Nome Completo *</label>
+                <input 
+                  v-model="form.name" 
+                  type="text" 
+                  required 
+                  placeholder="Seu nome completo"
+                />
+              </div>
 
-      <!-- Avatar Section -->
-      <div class="photo-section">
-        <img :src="avatarUrl" :alt="form.name || 'Avatar'" class="avatar" />
-        
-        <div class="photo-options">
-          <input 
-            type="file" 
-            ref="fileInput"
-            @change="handleFileUpload"
-            accept="image/*"
-            style="display: none"
-          />
-          
-          <button type="button" @click="$refs.fileInput.click()" :disabled="uploading">
-            {{ uploading ? 'Enviando...' : 'Escolher Foto' }}
-          </button>
-        </div>
-      </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label>Peso (kg)</label>
+                  <input 
+                    v-model.number="form.weight" 
+                    type="number" 
+                    min="30" 
+                    max="200" 
+                    placeholder="70"
+                  />
+                </div>
+                
+                <div class="form-group">
+                  <label>Altura (cm)</label>
+                  <input 
+                    v-model.number="form.height" 
+                    type="number" 
+                    min="100" 
+                    max="250" 
+                    placeholder="170"
+                  />
+                </div>
+              </div>
+            </div>
 
-      <!-- Personal Info -->
-      <div class="form-group">
-        <label>Nome Completo *</label>
-        <input 
-          v-model="form.name" 
-          type="text" 
-          required 
-          placeholder="Seu nome completo"
-        />
-      </div>
+            <!-- Coluna Direita -->
+            <div class="form-column">
+              <div class="form-group">
+                <label>Meta de Corrida</label>
+                <select v-model="form.goal">
+                  <option value="">Selecione sua meta</option>
+                  <option value="iniciante">Iniciante - Começar a correr</option>
+                  <option value="5k">Correr 5K</option>
+                  <option value="10k">Correr 10K</option>
+                  <option value="21k">Meia Maratona (21K)</option>
+                  <option value="42k">Maratona (42K)</option>
+                  <option value="ultramaratona">Ultramaratona</option>
+                </select>
+              </div>
 
-      <div class="form-row">
-        <div class="form-group">
-          <label>Peso (kg)</label>
-          <input 
-            v-model.number="form.weight" 
-            type="number" 
-            min="30" 
-            max="200" 
-            placeholder="70"
-          />
-        </div>
-        
-        <div class="form-group">
-          <label>Altura (cm)</label>
-          <input 
-            v-model.number="form.height" 
-            type="number" 
-            min="100" 
-            max="250" 
-            placeholder="170"
-          />
-        </div>
-      </div>
+              <div class="form-group">
+                <label>Biografia</label>
+                <textarea 
+                  v-model="form.bio" 
+                  placeholder="Conte um pouco sobre você, sua experiência com corrida..."
+                  rows="6"
+                  maxlength="500"
+                ></textarea>
+                <small>{{ form.bio?.length || 0 }}/500 caracteres</small>
+              </div>
 
-      <div class="form-group">
-        <label>Meta de Corrida</label>
-        <select v-model="form.goal">
-          <option value="">Selecione sua meta</option>
-          <option value="iniciante">Iniciante - Começar a correr</option>
-          <option value="5k">Correr 5K</option>
-          <option value="10k">Correr 10K</option>
-          <option value="21k">Meia Maratona (21K)</option>
-          <option value="42k">Maratona (42K)</option>
-          <option value="ultramaratona">Ultramaratona</option>
-        </select>
-      </div>
+              <div class="form-group">
+                <label>
+                  <input 
+                    type="checkbox" 
+                    v-model="form.showPersonalInfo"
+                  />
+                  Mostrar peso e altura publicamente
+                </label>
+              </div>
+            </div>
+          </div>
 
-      <div class="form-group">
-        <label>Biografia</label>
-        <textarea 
-          v-model="form.bio" 
-          placeholder="Conte um pouco sobre você, sua experiência com corrida..."
-          rows="4"
-          maxlength="500"
-        ></textarea>
-        <small>{{ form.bio?.length || 0 }}/500 caracteres</small>
-      </div>
-
-      <div class="form-group">
-        <label>
-          <input 
-            type="checkbox" 
-            v-model="form.showPersonalInfo"
-          />
-          Mostrar peso e altura publicamente
-        </label>
-      </div>
-
-      <div class="form-actions">
-        <button type="submit" :disabled="loading" class="save-btn">
-          {{ loading ? 'Salvando...' : 'Salvar Perfil' }}
-        </button>
-      </div>
+          <div class="form-actions">
+            <button type="submit" :disabled="loading" class="save-btn">
+              {{ loading ? 'Salvando...' : 'Salvar Perfil' }}
+            </button>
+          </div>
         </form>
 
         <div v-if="message" :class="['message', messageType]">
@@ -225,36 +231,47 @@ onMounted(() => {
 
 <style scoped>
 .profile-page {
-  min-height: 100vh;
-  background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/amigos_run_banner.png');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
+  height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 2rem;
+  padding: 1rem;
+  overflow: hidden;
 }
 
 .profile-container {
   width: 100%;
-  max-width: 600px;
+  max-width: 900px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.form-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+}
+
+.form-column {
+  display: flex;
+  flex-direction: column;
 }
 
 .profile-form {
-  background: rgba(255,255,255,0.1);
-  padding: 2rem;
+  background: rgba(255,255,255,0.9);
+  padding: 1rem;
   border-radius: 16px;
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255,255,255,0.2);
+  border: 1px solid rgba(255,255,255,0.3);
   transition: all 0.3s ease;
   overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.1);
 }
 
 .profile-form h2 {
   text-align: center;
-  margin-bottom: 2rem;
-  color: white;
+  margin-bottom: 1.5rem;
+  color: #333;
 }
 
 
@@ -305,7 +322,7 @@ onMounted(() => {
 }
 
 .form-group {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
 }
 
 .form-row {
@@ -319,7 +336,7 @@ onMounted(() => {
   align-items: center;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: rgba(255,255,255,0.9);
+  color: #333;
 }
 
 .form-group label input[type="checkbox"] {
@@ -334,18 +351,18 @@ onMounted(() => {
 .form-group textarea {
   width: 100%;
   padding: 12px;
-  background: rgba(255,255,255,0.1);
-  border: 1px solid rgba(255,255,255,0.2);
+  background: white;
+  border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 16px;
-  color: white;
+  color: #333;
   transition: all 0.3s ease;
   box-sizing: border-box;
 }
 
 .form-group input::placeholder,
 .form-group textarea::placeholder {
-  color: rgba(255,255,255,0.5);
+  color: #999;
 }
 
 .form-group input:focus,
@@ -363,7 +380,7 @@ onMounted(() => {
 }
 
 .form-group small {
-  color: rgba(255,255,255,0.7);
+  color: #666;
   font-size: 12px;
   margin-top: 0.25rem;
   display: block;
@@ -424,6 +441,11 @@ onMounted(() => {
   
   .profile-form {
     padding: 1rem;
+  }
+  
+  .form-columns {
+    grid-template-columns: 1fr;
+    gap: 1rem;
   }
   
   .form-row {

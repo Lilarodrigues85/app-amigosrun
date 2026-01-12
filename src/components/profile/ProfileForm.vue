@@ -231,12 +231,17 @@ onMounted(() => {
 
 <style scoped>
 .profile-page {
-  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 1rem;
   overflow: hidden;
+  z-index: 1000;
 }
 
 .profile-container {

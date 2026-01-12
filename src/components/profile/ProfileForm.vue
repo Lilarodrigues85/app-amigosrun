@@ -323,8 +323,10 @@ onMounted(() => {
 }
 
 .form-group label input[type="checkbox"] {
-  margin-right: 0.5rem;
+  margin-right: 0.75rem;
   margin-bottom: 0;
+  width: auto;
+  flex-shrink: 0;
 }
 
 .form-group input,

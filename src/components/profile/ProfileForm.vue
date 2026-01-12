@@ -1,8 +1,10 @@
 <template>
-  <div class="profile-form">
-    <h2>Meu Perfil</h2>
-    
-    <form @submit.prevent="handleSubmit">
+  <div class="profile-page">
+    <div class="profile-container">
+      <div class="profile-form">
+        <h2>Meu Perfil</h2>
+        
+        <form @submit.prevent="handleSubmit">
 
 
       <!-- Avatar Section -->
@@ -98,10 +100,12 @@
           {{ loading ? 'Salvando...' : 'Salvar Perfil' }}
         </button>
       </div>
-    </form>
+        </form>
 
-    <div v-if="message" :class="['message', messageType]">
-      {{ message }}
+        <div v-if="message" :class="['message', messageType]">
+          {{ message }}
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -220,19 +224,37 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.profile-form {
-  max-width: 600px;
-  margin: 0 auto;
+.profile-page {
+  min-height: 100vh;
+  background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/amigos_run_banner.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 2rem;
-  background: white;
+}
+
+.profile-container {
+  width: 100%;
+  max-width: 600px;
+}
+
+.profile-form {
+  background: rgba(255,255,255,0.1);
+  padding: 2rem;
   border-radius: 16px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  transition: all 0.3s ease;
+  overflow: hidden;
 }
 
 .profile-form h2 {
   text-align: center;
   margin-bottom: 2rem;
-  color: #333;
+  color: white;
 }
 
 
@@ -241,8 +263,9 @@ onMounted(() => {
   text-align: center;
   margin-bottom: 2rem;
   padding: 1.5rem;
-  background: #f8f9fa;
+  background: rgba(255,255,255,0.1);
   border-radius: 12px;
+  backdrop-filter: blur(5px);
 }
 
 .avatar {
@@ -292,10 +315,16 @@ onMounted(() => {
 }
 
 .form-group label {
-  display: block;
+  display: flex;
+  align-items: center;
   margin-bottom: 0.5rem;
   font-weight: 600;
-  color: #333;
+  color: rgba(255,255,255,0.9);
+}
+
+.form-group label input[type="checkbox"] {
+  margin-right: 0.5rem;
+  margin-bottom: 0;
 }
 
 .form-group input,
@@ -303,19 +332,27 @@ onMounted(() => {
 .form-group textarea {
   width: 100%;
   padding: 12px;
-  border: 2px solid #e1e5e9;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
   border-radius: 8px;
   font-size: 16px;
-  transition: border-color 0.3s ease;
+  color: white;
+  transition: all 0.3s ease;
   box-sizing: border-box;
+}
+
+.form-group input::placeholder,
+.form-group textarea::placeholder {
+  color: rgba(255,255,255,0.5);
 }
 
 .form-group input:focus,
 .form-group select:focus,
 .form-group textarea:focus {
   outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+  border-color: rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(10px);
 }
 
 .form-group textarea {
@@ -324,7 +361,7 @@ onMounted(() => {
 }
 
 .form-group small {
-  color: #666;
+  color: rgba(255,255,255,0.7);
   font-size: 12px;
   margin-top: 0.25rem;
   display: block;
@@ -379,9 +416,12 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
+  .profile-page {
+    padding: 1rem;
+  }
+  
   .profile-form {
     padding: 1rem;
-    margin: 1rem;
   }
   
   .form-row {

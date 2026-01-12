@@ -1,60 +1,61 @@
 import { 
-  createUserWithEmailAndPassword, 
   signInWithEmailAndPassword,
-  signInWithPopup,
-  GoogleAuthProvider,
-  sendEmailVerification,
-  signOut
+  createUserWithEmailAndPassword,
+  signOut,
+  updateProfile,
+  sendEmailVerification
 } from 'firebase/auth'
 import { auth } from '@/firebase/config'
 
-const googleProvider = new GoogleAuthProvider()
-
 export const authService = {
-  async register(email, password) {
-    console.log('🔵 AUTH: Registrando usuário', email)
-    const result = await createUserWithEmailAndPassword(auth, email, password)
-    console.log('✅ AUTH: Usuário criado', result.user.uid)
-    await sendEmailVerification(result.user)
-    console.log('✅ AUTH: Email de verificação enviado')
-    return result
-  },
-
   async login(email, password) {
-    console.log('🔵 AUTH: Fazendo login', email)
-    const result = await signInWithEmailAndPassword(auth, email, password)
-    console.log('✅ AUTH: Login realizado', result.user.uid)
-    
-    if (!result.user.emailVerified) {
-      console.error('❌ AUTH: Email não verificado')
-      throw new Error('Email não verificado')
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      
+      if (!userCredential.user.emailVerified) {
+        throw new Error('Email não verificado')
+      }
+      
+      return userCredential.user
+    } catch (error) {
+      throw this.handleAuthError(error)
     }
-    
-    console.log('✅ AUTH: Email verificado, login completo')
-    return result
   },
 
-  async loginWithGoogle() {
-    console.log('🔵 AUTH: Fazendo login com Google')
+  async register(email, password, displayName) {
     try {
-      googleProvider.setCustomParameters({
-        prompt: 'select_account'
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+      
+      await updateProfile(userCredential.user, {
+        displayName
       })
-      const result = await signInWithPopup(auth, googleProvider)
-      console.log('✅ AUTH: Login Google realizado', result.user.uid)
-      return result
+      
+      await sendEmailVerification(userCredential.user)
+      
+      return userCredential.user
     } catch (error) {
-      console.error('❌ AUTH: Erro no login Google:', error)
-      if (error.code === 'auth/popup-closed-by-user') {
-        throw new Error('Login cancelado pelo usuário')
-      }
-      throw error
+      throw this.handleAuthError(error)
     }
   },
 
   async logout() {
-    console.log('🔵 AUTH: Fazendo logout')
-    await signOut(auth)
-    console.log('✅ AUTH: Logout realizado')
+    try {
+      await signOut(auth)
+    } catch (error) {
+      throw new Error('Erro ao fazer logout')
+    }
+  },
+
+  handleAuthError(error) {
+    const errorMessages = {
+      'auth/user-not-found': 'Usuário não encontrado',
+      'auth/wrong-password': 'Senha incorreta',
+      'auth/email-already-in-use': 'Este email já está cadastrado',
+      'auth/weak-password': 'A senha deve ter pelo menos 6 caracteres',
+      'auth/invalid-email': 'Email inválido',
+      'auth/too-many-requests': 'Muitas tentativas. Tente novamente mais tarde'
+    }
+    
+    return new Error(errorMessages[error.code] || 'Erro de autenticação')
   }
 }

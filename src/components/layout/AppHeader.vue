@@ -10,6 +10,7 @@
       <nav class="nav-desktop">
         <router-link to="/" class="nav-link">Início</router-link>
         <router-link to="/corridas" class="nav-link">Corridas</router-link>
+        <router-link to="/mapa" class="nav-link">Mapa</router-link>
         <router-link to="/perfil" class="nav-link">Perfil</router-link>
       </nav>
 
@@ -31,6 +32,7 @@
     <nav v-if="showMobileMenu" class="nav-mobile">
       <router-link to="/" class="nav-link-mobile" @click="closeMobileMenu">Início</router-link>
       <router-link to="/corridas" class="nav-link-mobile" @click="closeMobileMenu">Corridas</router-link>
+      <router-link to="/mapa" class="nav-link-mobile" @click="closeMobileMenu">Mapa</router-link>
       <router-link to="/perfil" class="nav-link-mobile" @click="closeMobileMenu">Perfil</router-link>
       <button @click="logout" class="logout-btn-mobile">Sair</button>
     </nav>

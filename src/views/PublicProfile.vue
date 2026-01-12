@@ -1,132 +1,238 @@
 <template>
   <div class="public-profile">
-    <div v-if="loading" class="loading">Carregando perfil...</div>
-    
-    <div v-else-if="error" class="error">{{ error }}</div>
-    
-    <div v-else-if="profile" class="profile-card">
-      <div class="profile-header">
-        <img :src="profile.photoURL" :alt="profile.name" class="avatar" />
-        <h1>{{ profile.name }}</h1>
-        <p v-if="profile.bio" class="bio">{{ profile.bio }}</p>
+    <div class="profile-container">
+      <div v-if="loading" class="loading">
+        Carregando perfil...
       </div>
       
-      <div class="profile-stats">
-        <div class="stat">
-          <span class="label">Meta:</span>
-          <span class="value">{{ profile.goal || 'Não informado' }}</span>
+      <div v-else-if="profile" class="profile-card">
+        <div class="profile-header">
+          <img 
+            :src="profile.photoUrl || avatarUrl" 
+            :alt="profile.name"
+            class="profile-avatar"
+          />
+          <h2>{{ profile.name }}</h2>
+          <p v-if="profile.goal" class="profile-goal">
+            Meta: {{ getGoalText(profile.goal) }}
+          </p>
         </div>
-        <div v-if="profile.showPersonalInfo" class="personal-info">
-          <div class="stat">
-            <span class="label">Peso:</span>
-            <span class="value">{{ profile.weight }}kg</span>
+
+        <div class="profile-content">
+          <div v-if="profile.bio" class="profile-bio">
+            <h3>Sobre</h3>
+            <p>{{ profile.bio }}</p>
           </div>
-          <div class="stat">
-            <span class="label">Altura:</span>
-            <span class="value">{{ profile.height }}cm</span>
+
+          <div v-if="profile.weight || profile.height" class="profile-stats">
+            <h3>Informações</h3>
+            <div class="stats-grid">
+              <div v-if="profile.weight" class="stat">
+                <span class="stat-label">Peso</span>
+                <span class="stat-value">{{ profile.weight }}kg</span>
+              </div>
+              <div v-if="profile.height" class="stat">
+                <span class="stat-label">Altura</span>
+                <span class="stat-value">{{ profile.height }}cm</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="profile-footer">
+            <p class="member-since">
+              Membro desde {{ formatDate(profile.createdAt) }}
+            </p>
           </div>
         </div>
+      </div>
+
+      <div v-else class="error">
+        Perfil não encontrado
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { userService } from '@/services/userService'
+import { avatarService } from '@/services/avatarService'
 
 const route = useRoute()
 const profile = ref(null)
 const loading = ref(true)
-const error = ref('')
 
-onMounted(async () => {
+const avatarUrl = computed(() => {
+  if (!profile.value) return ''
+  return avatarService.getAvatarUrl(profile.value)
+})
+
+const loadProfile = async () => {
   try {
     const userId = route.params.id
     profile.value = await userService.getPublicProfile(userId)
-  } catch (err) {
-    error.value = 'Perfil não encontrado'
+  } catch (error) {
+    console.error('Erro ao carregar perfil:', error)
   } finally {
     loading.value = false
   }
+}
+
+const getGoalText = (goal) => {
+  const goals = {
+    'iniciante': 'Começar a correr',
+    '5k': 'Correr 5K',
+    '10k': 'Correr 10K',
+    '21k': 'Meia Maratona (21K)',
+    '42k': 'Maratona (42K)',
+    'ultramaratona': 'Ultramaratona'
+  }
+  return goals[goal] || goal
+}
+
+const formatDate = (dateString) => {
+  return new Date(dateString).toLocaleDateString('pt-BR', {
+    month: 'long',
+    year: 'numeric'
+  })
+}
+
+onMounted(() => {
+  loadProfile()
 })
 </script>
 
 <style scoped>
 .public-profile {
   min-height: 100vh;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  padding: 2rem;
+  background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/amigos_run_banner.png');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.profile-container {
+  width: 100%;
+  max-width: 500px;
 }
 
 .profile-card {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255,255,255,0.1);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  border-radius: 20px;
-  padding: 2rem;
-  max-width: 500px;
-  width: 100%;
-  text-align: center;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.2);
+  overflow: hidden;
 }
 
 .profile-header {
-  margin-bottom: 2rem;
+  text-align: center;
+  padding: 2rem;
+  background: rgba(255,255,255,0.05);
 }
 
-.avatar {
+.profile-avatar {
   width: 120px;
   height: 120px;
   border-radius: 50%;
+  border: 4px solid rgba(255,255,255,0.3);
   margin-bottom: 1rem;
-  border: 4px solid rgba(255, 255, 255, 0.3);
+  object-fit: cover;
 }
 
-h1 {
+.profile-header h2 {
   color: white;
-  margin-bottom: 0.5rem;
-  font-size: 2rem;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.5rem;
 }
 
-.bio {
-  color: rgba(255, 255, 255, 0.8);
-  font-style: italic;
+.profile-goal {
+  color: rgba(255,255,255,0.8);
+  margin: 0;
+  font-size: 0.9rem;
 }
 
-.profile-stats {
-  display: flex;
-  flex-direction: column;
+.profile-content {
+  padding: 2rem;
+}
+
+.profile-bio {
+  margin-bottom: 2rem;
+}
+
+.profile-bio h3,
+.profile-stats h3 {
+  color: white;
+  margin: 0 0 1rem 0;
+  font-size: 1.1rem;
+}
+
+.profile-bio p {
+  color: rgba(255,255,255,0.9);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
   gap: 1rem;
 }
 
 .stat {
-  display: flex;
-  justify-content: space-between;
-  padding: 0.5rem 0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255,255,255,0.1);
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
 }
 
-.label {
-  color: rgba(255, 255, 255, 0.7);
-  font-weight: 500;
+.stat-label {
+  display: block;
+  color: rgba(255,255,255,0.7);
+  font-size: 0.8rem;
+  margin-bottom: 0.25rem;
 }
 
-.value {
+.stat-value {
+  display: block;
   color: white;
+  font-size: 1.2rem;
   font-weight: 600;
 }
 
-.loading, .error {
-  color: white;
+.profile-footer {
+  margin-top: 2rem;
   text-align: center;
-  font-size: 1.2rem;
 }
 
+.member-since {
+  color: rgba(255,255,255,0.6);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.loading,
 .error {
-  color: #ff6b6b;
+  text-align: center;
+  color: white;
+  padding: 2rem;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+@media (max-width: 768px) {
+  .public-profile {
+    padding: 1rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

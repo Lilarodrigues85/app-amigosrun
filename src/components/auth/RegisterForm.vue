@@ -1,46 +1,95 @@
 <template>
-  <form @submit.prevent="handleRegister" class="register-form">
-    <input 
-      v-model="email" 
-      type="email" 
-      placeholder="Email" 
-      required 
-    />
-    <input 
-      v-model="password" 
-      type="password" 
-      placeholder="Senha (mín. 6 caracteres)" 
-      minlength="6"
-      required 
-    />
-    <button type="submit" :disabled="loading">
+  <form @submit.prevent="handleRegister" class="auth-form">
+    <h2>Cadastrar</h2>
+    
+    <div class="form-group">
+      <input
+        v-model="form.name"
+        type="text"
+        placeholder="Nome completo"
+        required
+        class="form-input"
+      />
+    </div>
+
+    <div class="form-group">
+      <input
+        v-model="form.email"
+        type="email"
+        placeholder="Email"
+        required
+        class="form-input"
+      />
+    </div>
+
+    <div class="form-group">
+      <input
+        v-model="form.password"
+        type="password"
+        placeholder="Senha (mín. 6 caracteres)"
+        required
+        minlength="6"
+        class="form-input"
+      />
+    </div>
+
+    <div class="form-group">
+      <input
+        v-model="form.confirmPassword"
+        type="password"
+        placeholder="Confirmar senha"
+        required
+        class="form-input"
+      />
+    </div>
+
+    <button type="submit" :disabled="loading || !isValidForm" class="auth-button">
       {{ loading ? 'Cadastrando...' : 'Cadastrar' }}
     </button>
-    <p v-if="error" class="error">{{ error }}</p>
-    <p v-if="success" class="success">Cadastro realizado! Verifique seu email.</p>
+
+    <div v-if="error" class="error-message">
+      {{ error }}
+    </div>
   </form>
 </template>
 
 <script setup>
-import { ref } from 'vue'
-import { authService } from '@/services/authService'
+import { ref, computed } from 'vue'
+import { useAuth } from '@/composables/useAuth'
+import { useRouter } from 'vue-router'
 
-const email = ref('')
-const password = ref('')
+const { register } = useAuth()
+const router = useRouter()
+
+const form = ref({
+  name: '',
+  email: '',
+  password: '',
+  confirmPassword: ''
+})
+
 const loading = ref(false)
 const error = ref('')
-const success = ref(false)
+
+const isValidForm = computed(() => {
+  return form.value.password === form.value.confirmPassword &&
+         form.value.password.length >= 6 &&
+         form.value.name.trim() &&
+         form.value.email.trim()
+})
 
 const handleRegister = async () => {
+  if (!isValidForm.value) {
+    error.value = 'Verifique os dados informados'
+    return
+  }
+
   loading.value = true
   error.value = ''
-  success.value = false
-  
+
   try {
-    await authService.register(email.value, password.value)
-    success.value = true
-    email.value = ''
-    password.value = ''
+    await register(form.value.email, form.value.password, form.value.name)
+    router.push('/')
   } catch (err) {
     error.value = err.message
   } finally {
@@ -50,68 +99,54 @@ const handleRegister = async () => {
 </script>
 
 <style scoped>
-.register-form { 
-  padding: 2rem;
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.register-form input { 
-  width: 100%;
-  padding: 12px 16px;
-  border: 2px solid #e1e5e9;
-  border-radius: 8px;
-  font-size: 16px;
-  transition: all 0.3s ease;
-  margin-bottom: 1rem;
-  box-sizing: border-box;
-}
-
-.register-form input:focus {
-  outline: none;
-  border-color: #667eea;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-}
-
-.register-form button { 
-  width: 100%;
-  padding: 12px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+.auth-form h2 {
+  text-align: center;
   color: white;
-  border: none;
+  margin-bottom: 1rem;
+}
+
+.form-input {
+  padding: 12px;
+  border: 1px solid rgba(255,255,255,0.3);
   border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  color: white;
   font-size: 16px;
-  font-weight: 600;
+}
+
+.form-input::placeholder {
+  color: rgba(255,255,255,0.7);
+}
+
+.auth-button {
+  padding: 12px;
+  background: rgba(255,255,255,0.2);
+  color: white;
+  border: 1px solid rgba(255,255,255,0.3);
+  border-radius: 8px;
   cursor: pointer;
+  font-size: 16px;
   transition: all 0.3s ease;
-  margin-top: 1rem;
 }
 
-.register-form button:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+.auth-button:hover:not(:disabled) {
+  background: rgba(255,255,255,0.3);
 }
 
-.register-form button:disabled {
+.auth-button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.error { 
-  color: #e74c3c;
+.error-message {
+  color: #ff6b6b;
+  text-align: center;
   font-size: 14px;
-  margin-top: 0.5rem;
-  padding: 8px;
-  background: #fdf2f2;
-  border-radius: 4px;
-  border-left: 4px solid #e74c3c;
-}
-
-.success { 
-  color: #27ae60;
-  font-size: 14px;
-  margin-top: 0.5rem;
-  padding: 8px;
-  background: #f0fff4;
-  border-radius: 4px;
-  border-left: 4px solid #27ae60;
 }
 </style>

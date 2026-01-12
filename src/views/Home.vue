@@ -47,8 +47,13 @@
         </div>
       </div>
 
-      <!-- Upcoming Races Sidebar -->
+      <!-- Sidebar -->
       <div class="sidebar">
+        <!-- Weather Widget -->
+        <div class="widget">
+          <WeatherWidget />
+        </div>
+
         <div class="widget">
           <h3>🏃‍♀️ Próximas Corridas</h3>
           <div v-for="race in upcomingRaces" :key="race.id" class="race-item">
@@ -62,10 +67,7 @@
         </div>
 
         <div class="widget">
-          <h3>📸 Fotos Recentes</h3>
-          <div class="photo-grid">
-            <img v-for="photo in recentPhotos" :key="photo.id" :src="photo.url" class="photo-thumb" />
-          </div>
+          <FeedSocial />
         </div>
       </div>
     </div>
@@ -75,6 +77,8 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuth } from '@/composables/useAuth'
+import WeatherWidget from '@/components/weather/WeatherWidget.vue'
+import FeedSocial from '@/components/social/FeedSocial.vue'
 
 const { user } = useAuth()
 const newPost = ref('')

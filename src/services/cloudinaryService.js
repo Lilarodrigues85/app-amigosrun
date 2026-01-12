@@ -1,37 +1,58 @@
+const CLOUDINARY_UPLOAD_PRESET = 'amigos_run'
+const CLOUDINARY_CLOUD_NAME = 'dqcpkpgte'
+
 export const cloudinaryService = {
   async uploadImage(file) {
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('upload_preset', import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET)
-    
-    const response = await fetch(
-      `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
-      {
-        method: 'POST',
-        body: formData
+    try {
+      this.validateFile(file)
+      
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET)
+      formData.append('cloud_name', CLOUDINARY_CLOUD_NAME)
+      
+      const response = await fetch(
+        `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
+        {
+          method: 'POST',
+          body: formData
+        }
+      )
+      
+      if (!response.ok) {
+        throw new Error('Erro no upload da imagem')
       }
-    )
-    
-    if (!response.ok) {
-      throw new Error('Erro ao fazer upload da imagem')
+      
+      const data = await response.json()
+      return data.secure_url
+    } catch (error) {
+      throw new Error('Erro ao fazer upload: ' + error.message)
     }
-    
-    const data = await response.json()
-    return data.secure_url
   },
 
   validateFile(file) {
     const maxSize = 5 * 1024 * 1024 // 5MB
     const allowedTypes = ['image/jpeg', 'image/png', 'image/webp']
     
+    if (!file) {
+      throw new Error('Nenhum arquivo selecionado')
+    }
+    
     if (file.size > maxSize) {
-      throw new Error('Imagem deve ter no máximo 5MB')
+      throw new Error('Arquivo muito grande. Máximo 5MB')
     }
     
     if (!allowedTypes.includes(file.type)) {
-      throw new Error('Formato deve ser JPG, PNG ou WebP')
+      throw new Error('Tipo de arquivo não suportado. Use JPG, PNG ou WebP')
+    }
+  },
+
+  getOptimizedUrl(url, width = 400, height = 400) {
+    if (!url || !url.includes('cloudinary.com')) {
+      return url
     }
     
-    return true
+    // Adiciona transformações do Cloudinary para otimizar a imagem
+    return url.replace('/upload/', `/upload/w_${width},h_${height},c_fill,f_auto,q_auto/`)
   }
 }

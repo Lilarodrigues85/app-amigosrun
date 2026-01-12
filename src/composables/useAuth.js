@@ -1,33 +1,80 @@
-import { ref } from 'vue'
-import { onAuthStateChanged } from 'firebase/auth'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { 
+  signInWithEmailAndPassword,
+  createUserWithEmailAndPassword,
+  signOut,
+  onAuthStateChanged,
+  updateProfile,
+  sendEmailVerification
+} from 'firebase/auth'
 import { auth } from '@/firebase/config'
-import { authService } from '@/services/authService'
 
 const user = ref(null)
 const loading = ref(true)
 
 export function useAuth() {
-  const router = useRouter()
-  
-  onAuthStateChanged(auth, (firebaseUser) => {
-    user.value = firebaseUser
-    loading.value = false
-    
-    if (firebaseUser && router.currentRoute.value.path === '/login') {
-      router.push('/profile')
+  const login = async (email, password) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      
+      if (!userCredential.user.emailVerified) {
+        throw new Error('Por favor, verifique seu email antes de fazer login')
+      }
+      
+      return userCredential.user
+    } catch (error) {
+      throw new Error(getErrorMessage(error.code))
     }
-  })
+  }
+
+  const register = async (email, password, name) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+      
+      await updateProfile(userCredential.user, {
+        displayName: name
+      })
+      
+      await sendEmailVerification(userCredential.user)
+      
+      throw new Error('Cadastro realizado! Verifique seu email para ativar a conta.')
+    } catch (error) {
+      throw new Error(getErrorMessage(error.code))
+    }
+  }
 
   const logout = async () => {
-    await authService.logout()
-    router.push('/login')
+    try {
+      await signOut(auth)
+    } catch (error) {
+      throw new Error('Erro ao fazer logout')
+    }
   }
+
+  const getErrorMessage = (errorCode) => {
+    const messages = {
+      'auth/user-not-found': 'Usuário não encontrado',
+      'auth/wrong-password': 'Senha incorreta',
+      'auth/email-already-in-use': 'Email já está em uso',
+      'auth/weak-password': 'Senha muito fraca',
+      'auth/invalid-email': 'Email inválido',
+      'auth/too-many-requests': 'Muitas tentativas. Tente novamente mais tarde'
+    }
+    return messages[errorCode] || 'Erro desconhecido'
+  }
+
+  onMounted(() => {
+    onAuthStateChanged(auth, (firebaseUser) => {
+      user.value = firebaseUser
+      loading.value = false
+    })
+  })
 
   return {
     user,
     loading,
-    logout,
-    isAuthenticated: () => !!user.value
+    login,
+    register,
+    logout
   }
 }

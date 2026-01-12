@@ -223,22 +223,24 @@ quadrantChart
 **Objetivo**: Implementar recursos sociais para engajamento da comunidade
 **Estimativa Total**: 20 pontos
 **Timeline**: Sprint 3
+**Status**: ✅ Concluído
 
 **Histórias Incluídas**:
-- SOCIAL-009: Sistema Vou/Não Vou - 8 pontos
-- FEED-010: Feed de Interação - 8 pontos
-- NOTIF-011: Notificações Visuais - 4 pontos
+- SOCIAL-009: Sistema Vou/Não Vou - 8 pontos ✅
+- FEED-010: Feed de Interação - 8 pontos ✅
+- NOTIF-011: Notificações Visuais - 4 pontos ✅
 
 #### Epic 4: Mapa e Localização (Sprint 4)
 
 **Objetivo**: Adicionar funcionalidades de mapa e localização em tempo real
 **Estimativa Total**: 25 pontos
 **Timeline**: Sprint 4
+**Status**: ✅ Concluído
 
 **Histórias Incluídas**:
-- MAP-012: Mapa com Leaflet - 10 pontos
-- LOCATION-013: Localização Tempo Real - 10 pontos
-- MAP-014: Marcadores de Eventos - 5 pontos
+- MAP-012: Mapa com Leaflet - 10 pontos ✅
+- LOCATION-013: Localização Tempo Real - 10 pontos ✅
+- MAP-014: Marcadores de Eventos - 5 pontos ✅
 
 ### Backlog Priorizado
 
@@ -271,26 +273,117 @@ quadrantChart
 
 ## 📋 Detalhamento das User Stories
 
-### CORRIDA-005: Cadastrar Nova Corrida
+### SOCIAL-009: Sistema "Vou/Não Vou" para Corridas
 
-**Como** organizador de eventos
-**Eu quero** cadastrar uma nova corrida na plataforma
-**Para que** os corredores possam descobrir e se inscrever no evento
+**Status**: ✅ Concluído
+**Estimativa**: 8 pontos
+**Assignee**: Dalila Rodrigues
+**Epic**: Interação Social
+**Labels**: social, firebase, realtime
+
+**Descrição**: Como usuário, eu quero confirmar minha presença em corridas para que outros corredores saibam quem vai participar.
 
 **Critérios de Aceitação**:
-- [ ] Formulário com campos obrigatórios: título, data, local, valor
-- [ ] Integração com OpenStreetMap para seleção de local
-- [ ] Validação de data (não pode ser no passado)
-- [ ] Upload opcional de imagem do evento
-- [ ] Link de inscrição externa
-- [ ] Confirmação visual após cadastro
+- [x] Botão "Vou/Não Vou" em cada corrida
+- [x] Contador de participantes confirmados
+- [x] Atualização em tempo real
+- [x] Integração com feed social
+- [x] Notificações para outros usuários
 
-**Definição de Pronto**:
-- [ ] Formulário responsivo implementado
-- [ ] Validações client-side funcionando
-- [ ] Dados salvos no Firestore
-- [ ] Testes unitários escritos
-- [ ] Code review aprovado
+**Arquivos Implementados**:
+- presencaService.js
+- PresencaButton.vue
+- Integração em CorridasList.vue
+
+### FEED-010: Feed de Interação Social
+
+**Status**: ✅ Concluído
+**Estimativa**: 8 pontos
+**Assignee**: Dalila Rodrigues
+**Epic**: Interação Social
+**Labels**: social, feed, firebase
+
+**Descrição**: Como usuário, eu quero ver um feed de atividades da comunidade para me manter conectado com outros corredores.
+
+**Critérios de Aceitação**:
+- [x] Feed com posts de confirmações
+- [x] Posts em tempo real
+- [x] Design glassmorphism
+- [x] Integração na página inicial
+- [x] Diferentes tipos de posts
+
+**Arquivos Implementados**:
+- feedService.js
+- FeedSocial.vue
+- Integração em Home.vue
+
+### MAP-012: Mapa Interativo com Leaflet
+
+**Status**: ✅ Concluído
+**Estimativa**: 10 pontos
+**Assignee**: Dalila Rodrigues
+**Epic**: Mapa e Localização
+**Labels**: mapa, leaflet, openstreetmap
+
+**Descrição**: Como usuário, eu quero visualizar um mapa interativo com as corridas para encontrar eventos próximos.
+
+**Critérios de Aceitação**:
+- [x] Mapa interativo com OpenStreetMap
+- [x] Marcadores para corridas cadastradas
+- [x] Popups com informações das corridas
+- [x] Controles de zoom e navegação
+- [x] Botão para centralizar na localização do usuário
+- [x] Toggle para mostrar/ocultar marcadores
+
+**Arquivos Implementados**:
+- MapaInterativo.vue
+- localizacaoService.js
+- Mapa.vue
+- Rota /mapa adicionada
+
+### LOCATION-013: Compartilhamento de Localização
+
+**Status**: ✅ Concluído
+**Estimativa**: 10 pontos
+**Assignee**: Dalila Rodrigues
+**Epic**: Mapa e Localização
+**Labels**: geolocation, firebase, realtime
+
+**Descrição**: Como usuário, eu quero compartilhar minha localização em tempo real para que outros corredores me encontrem.
+
+**Critérios de Aceitação**:
+- [x] Botão para iniciar/parar compartilhamento
+- [x] Atualização periódica da localização (30s)
+- [x] Indicador visual de status
+- [x] Persistência do estado
+- [x] Tratamento de erros de geolocalização
+
+**Arquivos Implementados**:
+- CompartilharLocalizacao.vue
+- Integração com localizacaoService.js
+- Armazenamento no Firebase
+
+### MAP-014: Marcadores de Eventos no Mapa
+
+**Status**: ✅ Concluído
+**Estimativa**: 5 pontos
+**Assignee**: Dalila Rodrigues
+**Epic**: Mapa e Localização
+**Labels**: markers, eventos, integration
+
+**Descrição**: Como usuário, eu quero ver marcadores das corridas no mapa para localizar eventos facilmente.
+
+**Critérios de Aceitação**:
+- [x] Marcadores automáticos para corridas com coordenadas
+- [x] Popups informativos com detalhes da corrida
+- [x] Integração com formulário de cadastro
+- [x] Seletor de localização no formulário
+- [x] Coordenadas salvas no Firebase
+
+**Arquivos Implementados**:
+- Integração em CorridaForm.vue
+- Marcadores em MapaInterativo.vue
+- Campos latitude/longitude no modelo
 
 ## 🐛 Backlog de Bugs
 

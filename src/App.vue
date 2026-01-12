@@ -1,9 +1,11 @@
 <template>
   <AppLayout />
+  <NotificacoesVisuais />
 </template>
 
 <script setup>
 import AppLayout from './components/layout/AppLayout.vue'
+import NotificacoesVisuais from './components/social/NotificacoesVisuais.vue'
 </script>
 
 <style>

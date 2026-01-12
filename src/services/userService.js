@@ -41,5 +41,23 @@ export const userService = {
     const userRef = doc(db, 'users', uid)
     const validUrl = avatarService.isValidImageUrl(photoUrl) ? photoUrl : null
     await updateDoc(userRef, { photoUrl: validUrl })
+  },
+
+  async getPublicProfile(userId) {
+    const userDoc = await getDoc(doc(db, 'users', userId))
+    if (!userDoc.exists()) {
+      throw new Error('Usuário não encontrado')
+    }
+    
+    const userData = userDoc.data()
+    return {
+      name: userData.name,
+      photoURL: userData.photoUrl,
+      bio: userData.bio,
+      goal: userData.goal,
+      weight: userData.showPersonalInfo ? userData.weight : null,
+      height: userData.showPersonalInfo ? userData.height : null,
+      showPersonalInfo: userData.showPersonalInfo || false
+    }
   }
 }

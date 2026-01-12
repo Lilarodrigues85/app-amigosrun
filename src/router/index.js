@@ -18,6 +18,11 @@ const routes = [
     path: '/profile',
     name: 'Profile',
     component: Profile
+  },
+  {
+    path: '/profile/:id',
+    name: 'PublicProfile',
+    component: () => import('@/views/PublicProfile.vue')
   }
 ]
 

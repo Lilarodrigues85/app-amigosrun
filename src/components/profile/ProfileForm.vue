@@ -3,17 +3,24 @@
     <h2>Meu Perfil</h2>
     
     <form @submit.prevent="handleSubmit">
+
+
       <!-- Avatar Section -->
       <div class="photo-section">
         <img :src="avatarUrl" :alt="form.name || 'Avatar'" class="avatar" />
         
         <div class="photo-options">
           <input 
-            v-model="customPhotoUrl" 
-            placeholder="Cole URL da sua foto (opcional)"
-            @blur="validatePhotoUrl"
+            type="file" 
+            ref="fileInput"
+            @change="handleFileUpload"
+            accept="image/*"
+            style="display: none"
           />
-          <button type="button" @click="useGeneratedAvatar">Usar Avatar Gerado</button>
+          
+          <button type="button" @click="$refs.fileInput.click()" :disabled="uploading">
+            {{ uploading ? 'Enviando...' : 'Escolher Foto' }}
+          </button>
         </div>
       </div>
 
@@ -76,6 +83,16 @@
         <small>{{ form.bio?.length || 0 }}/500 caracteres</small>
       </div>
 
+      <div class="form-group">
+        <label>
+          <input 
+            type="checkbox" 
+            v-model="form.showPersonalInfo"
+          />
+          Mostrar peso e altura publicamente
+        </label>
+      </div>
+
       <div class="form-actions">
         <button type="submit" :disabled="loading" class="save-btn">
           {{ loading ? 'Salvando...' : 'Salvar Perfil' }}
@@ -95,6 +112,7 @@ import { onAuthStateChanged } from 'firebase/auth'
 import { auth } from '@/firebase/config'
 import { avatarService } from '@/services/avatarService'
 import { userService } from '@/services/userService'
+import { cloudinaryService } from '@/services/cloudinaryService'
 
 const currentUser = ref(null)
 
@@ -108,31 +126,44 @@ const form = ref({
   height: null,
   goal: '',
   bio: '',
-  photoUrl: null
+  photoUrl: null,
+  showPersonalInfo: false
 })
 
+
 const customPhotoUrl = ref('')
+const uploading = ref(false)
 const loading = ref(false)
 const message = ref('')
 const messageType = ref('success')
 
+
+
 const avatarUrl = computed(() => {
   return avatarService.getAvatarUrl({
     name: form.value.name || 'Usuario',
-    photoUrl: customPhotoUrl.value || form.value.photoUrl
+    photoUrl: form.value.photoUrl
   })
 })
 
-const validatePhotoUrl = () => {
-  if (customPhotoUrl.value && !avatarService.isValidImageUrl(customPhotoUrl.value)) {
-    showMessage('URL de imagem inválida', 'error')
-    customPhotoUrl.value = ''
-  }
-}
+const handleFileUpload = async (event) => {
+  const file = event.target.files[0]
+  if (!file) return
 
-const useGeneratedAvatar = () => {
-  customPhotoUrl.value = ''
-  form.value.photoUrl = null
+  try {
+    cloudinaryService.validateFile(file)
+    uploading.value = true
+    
+    const imageUrl = await cloudinaryService.uploadImage(file)
+    form.value.photoUrl = imageUrl
+    
+    showMessage('Foto enviada com sucesso!')
+  } catch (error) {
+    showMessage(error.message, 'error')
+  } finally {
+    uploading.value = false
+    event.target.value = ''
+  }
 }
 
 const showMessage = (text, type = 'success') => {
@@ -154,7 +185,7 @@ const handleSubmit = async () => {
   try {
     const profileData = {
       ...form.value,
-      photoUrl: customPhotoUrl.value || form.value.photoUrl,
+      photoUrl: form.value.photoUrl,
       updatedAt: new Date().toISOString()
     }
     
@@ -174,7 +205,6 @@ const loadProfile = async () => {
     const profile = await userService.getProfile(currentUser.value.uid)
     if (profile) {
       form.value = { ...profile }
-      customPhotoUrl.value = profile.photoUrl || ''
     } else {
       // Set default name from auth
       form.value.name = currentUser.value.displayName || currentUser.value.email?.split('@')[0] || ''
@@ -205,6 +235,8 @@ onMounted(() => {
   color: #333;
 }
 
+
+
 .photo-section {
   text-align: center;
   margin-bottom: 2rem;
@@ -227,15 +259,6 @@ onMounted(() => {
   margin: 0 auto;
 }
 
-.photo-options input {
-  width: 100%;
-  padding: 12px;
-  border: 2px solid #e1e5e9;
-  border-radius: 8px;
-  margin-bottom: 1rem;
-  font-size: 14px;
-}
-
 .photo-options button {
   padding: 10px 20px;
   background: #667eea;
@@ -245,10 +268,17 @@ onMounted(() => {
   cursor: pointer;
   font-size: 14px;
   transition: all 0.3s ease;
+  margin-bottom: 0.5rem;
+  width: 100%;
 }
 
-.photo-options button:hover {
+.photo-options button:hover:not(:disabled) {
   background: #5a67d8;
+}
+
+.photo-options button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .form-group {

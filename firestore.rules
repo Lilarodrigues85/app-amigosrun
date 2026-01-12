@@ -1,0 +1,39 @@
+// No console: Firestore > Rules
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Users - só o próprio usuário pode editar
+    match /users/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Corridas - qualquer autenticado pode ler, só criador pode editar
+    match /corridas/{runId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && 
+        request.auth.uid == resource.data.createdBy;
+    }
+    
+    // Presenças - só o próprio usuário pode alterar
+    match /corridas/{runId}/presencas/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+    
+    // Feed - qualquer autenticado pode ler/criar, só autor pode editar
+    match /feed/{postId} {
+      allow read: if true;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && 
+        request.auth.uid == resource.data.userId;
+    }
+    
+    // Locations - só o próprio usuário pode alterar
+    match /locations/{userId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}

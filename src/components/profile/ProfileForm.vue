@@ -1,0 +1,366 @@
+<template>
+  <div class="profile-form">
+    <h2>Meu Perfil</h2>
+    
+    <form @submit.prevent="handleSubmit">
+      <!-- Avatar Section -->
+      <div class="photo-section">
+        <img :src="avatarUrl" :alt="form.name || 'Avatar'" class="avatar" />
+        
+        <div class="photo-options">
+          <input 
+            v-model="customPhotoUrl" 
+            placeholder="Cole URL da sua foto (opcional)"
+            @blur="validatePhotoUrl"
+          />
+          <button type="button" @click="useGeneratedAvatar">Usar Avatar Gerado</button>
+        </div>
+      </div>
+
+      <!-- Personal Info -->
+      <div class="form-group">
+        <label>Nome Completo *</label>
+        <input 
+          v-model="form.name" 
+          type="text" 
+          required 
+          placeholder="Seu nome completo"
+        />
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label>Peso (kg)</label>
+          <input 
+            v-model.number="form.weight" 
+            type="number" 
+            min="30" 
+            max="200" 
+            placeholder="70"
+          />
+        </div>
+        
+        <div class="form-group">
+          <label>Altura (cm)</label>
+          <input 
+            v-model.number="form.height" 
+            type="number" 
+            min="100" 
+            max="250" 
+            placeholder="170"
+          />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Meta de Corrida</label>
+        <select v-model="form.goal">
+          <option value="">Selecione sua meta</option>
+          <option value="iniciante">Iniciante - Começar a correr</option>
+          <option value="5k">Correr 5K</option>
+          <option value="10k">Correr 10K</option>
+          <option value="21k">Meia Maratona (21K)</option>
+          <option value="42k">Maratona (42K)</option>
+          <option value="ultramaratona">Ultramaratona</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Biografia</label>
+        <textarea 
+          v-model="form.bio" 
+          placeholder="Conte um pouco sobre você, sua experiência com corrida..."
+          rows="4"
+          maxlength="500"
+        ></textarea>
+        <small>{{ form.bio?.length || 0 }}/500 caracteres</small>
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" :disabled="loading" class="save-btn">
+          {{ loading ? 'Salvando...' : 'Salvar Perfil' }}
+        </button>
+      </div>
+    </form>
+
+    <div v-if="message" :class="['message', messageType]">
+      {{ message }}
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed, onMounted } from 'vue'
+import { onAuthStateChanged } from 'firebase/auth'
+import { auth } from '@/firebase/config'
+import { avatarService } from '@/services/avatarService'
+import { userService } from '@/services/userService'
+
+const currentUser = ref(null)
+
+onAuthStateChanged(auth, (user) => {
+  currentUser.value = user
+})
+
+const form = ref({
+  name: '',
+  weight: null,
+  height: null,
+  goal: '',
+  bio: '',
+  photoUrl: null
+})
+
+const customPhotoUrl = ref('')
+const loading = ref(false)
+const message = ref('')
+const messageType = ref('success')
+
+const avatarUrl = computed(() => {
+  return avatarService.getAvatarUrl({
+    name: form.value.name || 'Usuario',
+    photoUrl: customPhotoUrl.value || form.value.photoUrl
+  })
+})
+
+const validatePhotoUrl = () => {
+  if (customPhotoUrl.value && !avatarService.isValidImageUrl(customPhotoUrl.value)) {
+    showMessage('URL de imagem inválida', 'error')
+    customPhotoUrl.value = ''
+  }
+}
+
+const useGeneratedAvatar = () => {
+  customPhotoUrl.value = ''
+  form.value.photoUrl = null
+}
+
+const showMessage = (text, type = 'success') => {
+  message.value = text
+  messageType.value = type
+  setTimeout(() => {
+    message.value = ''
+  }, 3000)
+}
+
+const handleSubmit = async () => {
+  if (!form.value.name.trim()) {
+    showMessage('Nome é obrigatório', 'error')
+    return
+  }
+
+  loading.value = true
+  
+  try {
+    const profileData = {
+      ...form.value,
+      photoUrl: customPhotoUrl.value || form.value.photoUrl,
+      updatedAt: new Date().toISOString()
+    }
+    
+    await userService.updateProfile(currentUser.value.uid, profileData)
+    showMessage('Perfil salvo com sucesso!')
+  } catch (error) {
+    showMessage('Erro ao salvar perfil: ' + error.message, 'error')
+  } finally {
+    loading.value = false
+  }
+}
+
+const loadProfile = async () => {
+  if (!currentUser.value) return
+  
+  try {
+    const profile = await userService.getProfile(currentUser.value.uid)
+    if (profile) {
+      form.value = { ...profile }
+      customPhotoUrl.value = profile.photoUrl || ''
+    } else {
+      // Set default name from auth
+      form.value.name = currentUser.value.displayName || currentUser.value.email?.split('@')[0] || ''
+    }
+  } catch (error) {
+    console.error('Erro ao carregar perfil:', error)
+  }
+}
+
+onMounted(() => {
+  loadProfile()
+})
+</script>
+
+<style scoped>
+.profile-form {
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 2rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.profile-form h2 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #333;
+}
+
+.photo-section {
+  text-align: center;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  margin-bottom: 1rem;
+  border: 4px solid #667eea;
+  object-fit: cover;
+}
+
+.photo-options {
+  max-width: 300px;
+  margin: 0 auto;
+}
+
+.photo-options input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  font-size: 14px;
+}
+
+.photo-options button {
+  padding: 10px 20px;
+  background: #667eea;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.photo-options button:hover {
+  background: #5a67d8;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #e1e5e9;
+  border-radius: 8px;
+  font-size: 16px;
+  transition: border-color 0.3s ease;
+  box-sizing: border-box;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-group textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+.form-group small {
+  color: #666;
+  font-size: 12px;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.form-actions {
+  text-align: center;
+  margin-top: 2rem;
+}
+
+.save-btn {
+  padding: 14px 32px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 150px;
+}
+
+.save-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+}
+
+.save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.message {
+  margin-top: 1rem;
+  padding: 12px;
+  border-radius: 8px;
+  text-align: center;
+  font-weight: 500;
+}
+
+.message.success {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.message.error {
+  background: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+@media (max-width: 768px) {
+  .profile-form {
+    padding: 1rem;
+    margin: 1rem;
+  }
+  
+  .form-row {
+    grid-template-columns: 1fr;
+  }
+  
+  .avatar {
+    width: 100px;
+    height: 100px;
+  }
+}
+</style>

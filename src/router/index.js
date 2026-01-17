@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { auth } from '@/firebase/config'
+import { onAuthStateChanged } from 'firebase/auth'
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
 import Profile from '@/views/Profile.vue'
@@ -50,15 +51,45 @@ const router = createRouter({
   routes
 })
 
-// Navigation guard
-router.beforeEach((to, from, next) => {
-  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
-  const currentUser = auth.currentUser
+// Função para aguardar inicialização do Firebase Auth
+const getCurrentUser = () => {
+  return new Promise((resolve, reject) => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      unsubscribe()
+      resolve(user)
+    }, reject)
+  })
+}
 
-  if (requiresAuth && !currentUser) {
-    next('/login')
-  } else if (to.path === '/login' && currentUser) {
-    next('/')
+// Navigation guard corrigido
+router.beforeEach(async (to, from, next) => {
+  const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  
+  if (requiresAuth) {
+    try {
+      // Aguarda o Firebase inicializar e verificar se há usuário logado
+      const currentUser = await getCurrentUser()
+      
+      if (currentUser) {
+        next()
+      } else {
+        next('/login')
+      }
+    } catch (error) {
+      console.error('Erro ao verificar autenticação:', error)
+      next('/login')
+    }
+  } else if (to.path === '/login') {
+    try {
+      const currentUser = await getCurrentUser()
+      if (currentUser) {
+        next('/')
+      } else {
+        next()
+      }
+    } catch (error) {
+      next()
+    }
   } else {
     next()
   }

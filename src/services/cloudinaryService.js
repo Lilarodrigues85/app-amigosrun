@@ -1,5 +1,5 @@
-const CLOUDINARY_UPLOAD_PRESET = 'amigos_run'
-const CLOUDINARY_CLOUD_NAME = 'dqcpkpgte'
+const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'amigos_run'
+const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dqcpkpgte'
 
 export const cloudinaryService = {
   async uploadImage(file) {
@@ -9,7 +9,11 @@ export const cloudinaryService = {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('upload_preset', CLOUDINARY_UPLOAD_PRESET)
-      formData.append('cloud_name', CLOUDINARY_CLOUD_NAME)
+      
+      console.log('Uploading to Cloudinary:', {
+        cloudName: CLOUDINARY_CLOUD_NAME,
+        uploadPreset: CLOUDINARY_UPLOAD_PRESET
+      })
       
       const response = await fetch(
         `https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD_NAME}/image/upload`,
@@ -20,12 +24,16 @@ export const cloudinaryService = {
       )
       
       if (!response.ok) {
-        throw new Error('Erro no upload da imagem')
+        const errorData = await response.text()
+        console.error('Cloudinary error:', errorData)
+        throw new Error(`Erro no upload da imagem: ${response.status} - ${errorData}`)
       }
       
       const data = await response.json()
+      console.log('Upload successful:', data.secure_url)
       return data.secure_url
     } catch (error) {
+      console.error('Upload error:', error)
       throw new Error('Erro ao fazer upload: ' + error.message)
     }
   },

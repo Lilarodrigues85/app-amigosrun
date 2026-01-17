@@ -1,5 +1,14 @@
 <template>
-  <AppLayout />
+  <router-view v-slot="{ Component, route }">
+    <template v-if="route.meta.layout === 'blank'">
+      <component :is="Component" />
+    </template>
+    <template v-else>
+      <AppLayout>
+        <component :is="Component" />
+      </AppLayout>
+    </template>
+  </router-view>
   <NotificacoesVisuais />
 </template>
 

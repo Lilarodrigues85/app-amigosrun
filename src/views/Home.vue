@@ -1,72 +1,103 @@
 <template>
   <div class="home">
-    <!-- Feed Container -->
-    <div class="feed-container">
-      <!-- Create Post -->
-      <div class="create-post">
-        <div class="post-header">
-          <img :src="user?.photoURL || '/default-avatar.png'" class="avatar" />
-          <input 
-            v-model="newPost" 
-            placeholder="Compartilhe sua experiência de corrida..."
-            class="post-input"
-            @keyup.enter="createPost"
-          />
-        </div>
-        <div class="post-actions">
-          <button @click="createPost" :disabled="!newPost.trim()" class="post-btn">
-            📝 Publicar
-          </button>
-        </div>
-      </div>
-
-      <!-- Feed Posts -->
-      <div class="feed">
-        <div v-for="post in posts" :key="post.id" class="post-card">
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Feed Container -->
+      <div class="feed-container">
+        <!-- Create Post -->
+        <div class="create-post-card">
           <div class="post-header">
-            <img :src="post.user.photoURL || '/default-avatar.png'" class="avatar" />
-            <div class="post-info">
-              <h4>{{ post.user.name }}</h4>
-              <span class="post-time">{{ formatTime(post.createdAt) }}</span>
-            </div>
+            <img :src="user?.photoURL || '/default-avatar.png'" class="avatar" />
+            <input 
+              v-model="newPost" 
+              placeholder="Compartilhe sua experiência de corrida..."
+              class="post-input"
+              @keyup.enter="createPost"
+            />
           </div>
-          
-          <div class="post-content">
-            <p>{{ post.content }}</p>
-            <img v-if="post.image" :src="post.image" class="post-image" />
-          </div>
-          
           <div class="post-actions">
-            <button @click="likePost(post.id)" class="action-btn">
-              ❤️ {{ post.likes || 0 }}
+            <button @click="createPost" :disabled="!newPost.trim()" class="post-btn">
+              <span>📝</span> Publicar
             </button>
-            <button class="action-btn">
-              💬 {{ post.comments?.length || 0 }}
-            </button>
+          </div>
+        </div>
+
+        <!-- Feed Posts -->
+        <div class="feed">
+          <div v-for="post in posts" :key="post.id" class="post-card">
+            <div class="post-header">
+              <img :src="post.user.photoURL || '/default-avatar.png'" class="avatar" />
+              <div class="post-info">
+                <h4>{{ post.user.name }}</h4>
+                <span class="post-time">{{ formatTime(post.createdAt) }}</span>
+              </div>
+            </div>
+            
+            <div class="post-content">
+              <p>{{ post.content }}</p>
+              <img v-if="post.image" :src="post.image" class="post-image" />
+            </div>
+            
+            <div class="post-actions-bar">
+              <button @click="likePost(post.id)" class="action-btn">
+                <span>❤️</span> {{ post.likes || 0 }}
+              </button>
+              <button class="action-btn">
+                <span>💬</span> {{ post.comments?.length || 0 }}
+              </button>
+              <button class="action-btn">
+                <span>🔄</span> Compartilhar
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Sidebar -->
       <div class="sidebar">
-        <!-- Weather Widget -->
-        <div class="widget">
-          <WeatherWidget />
-        </div>
-
-        <div class="widget">
-          <h3>🏃‍♀️ Próximas Corridas</h3>
-          <div v-for="race in upcomingRaces" :key="race.id" class="race-item">
-            <div class="race-date">{{ formatDate(race.date) }}</div>
-            <div class="race-info">
-              <h4>{{ race.name }}</h4>
-              <p>{{ race.location }}</p>
-              <span class="race-distance">{{ race.distance }}</span>
+        <!-- Quick Stats -->
+        <div class="stats-widget">
+          <h3>📊 Suas Estatísticas</h3>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value">12</div>
+              <div class="stat-label">Corridas</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">85km</div>
+              <div class="stat-label">Total</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">5:30</div>
+              <div class="stat-label">Pace Médio</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value">45</div>
+              <div class="stat-label">Amigos</div>
             </div>
           </div>
         </div>
 
+        <!-- Upcoming Races -->
         <div class="widget">
+          <h3>🏃‍♀️ Próximas Corridas</h3>
+          <div v-for="race in upcomingRaces" :key="race.id" class="race-item">
+            <div class="race-date">
+              <div class="date-day">{{ formatDay(race.date) }}</div>
+              <div class="date-month">{{ formatMonth(race.date) }}</div>
+            </div>
+            <div class="race-info">
+              <h4>{{ race.name }}</h4>
+              <p>📍 {{ race.location }}</p>
+              <span class="race-distance">{{ race.distance }}</span>
+            </div>
+          </div>
+          <button class="view-all-btn">Ver todas as corridas →</button>
+        </div>
+
+        <!-- Social Feed Widget -->
+        <div class="widget">
+          <h3>🔥 Atividades Recentes</h3>
           <FeedSocial />
         </div>
       </div>
@@ -75,9 +106,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref } from 'vue'
 import { useAuth } from '@/composables/useAuth'
-import WeatherWidget from '@/components/weather/WeatherWidget.vue'
 import FeedSocial from '@/components/social/FeedSocial.vue'
 
 const { user } = useAuth()
@@ -119,13 +149,6 @@ const upcomingRaces = ref([
   }
 ])
 
-const recentPhotos = ref([
-  { id: 1, url: 'https://images.unsplash.com/photo-1544717297-fa95b6ee9643?w=150' },
-  { id: 2, url: 'https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=150' },
-  { id: 3, url: 'https://images.unsplash.com/photo-1594736797933-d0501ba2fe65?w=150' },
-  { id: 4, url: 'https://images.unsplash.com/photo-1552674605-db6ffd4facb5?w=150' }
-])
-
 const createPost = () => {
   if (!newPost.value.trim()) return
   
@@ -158,35 +181,43 @@ const formatTime = (date) => {
   return `${Math.floor(hours / 24)}d atrás`
 }
 
-const formatDate = (date) => {
-  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
+const formatDay = (date) => {
+  return date.getDate()
+}
+
+const formatMonth = (date) => {
+  return date.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase()
 }
 </script>
 
 <style scoped>
 .home {
   min-height: 100vh;
-  background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('@/assets/images/amigos_run_banner.png');
-  background-size: cover;
-  background-position: center;
-  background-attachment: fixed;
-  padding: 2rem 1rem;
+  padding-bottom: 2rem;
 }
 
-.feed-container {
+.main-content {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 1rem;
   display: grid;
-  grid-template-columns: 1fr 300px;
+  grid-template-columns: 1fr 350px;
   gap: 2rem;
 }
 
-.create-post {
-  background: white;
-  border-radius: 12px;
+.feed-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.create-post-card {
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
   padding: 1.5rem;
-  margin-bottom: 2rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  border: 1px solid rgba(255,255,255,0.5);
 }
 
 .post-header {
@@ -197,20 +228,27 @@ const formatDate = (date) => {
 }
 
 .avatar {
-  width: 40px;
-  height: 40px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   object-fit: cover;
+  border: 2px solid rgba(102, 126, 234, 0.3);
 }
 
 .post-input {
   flex: 1;
-  border: none;
+  border: 2px solid rgba(102, 126, 234, 0.2);
   outline: none;
-  font-size: 16px;
-  padding: 0.5rem;
-  background: #f8f9fa;
-  border-radius: 8px;
+  font-size: 15px;
+  padding: 12px 16px;
+  background: rgba(248, 249, 250, 0.8);
+  border-radius: 24px;
+  transition: all 0.3s ease;
+}
+
+.post-input:focus {
+  border-color: rgba(102, 126, 234, 0.5);
+  background: white;
 }
 
 .post-actions {
@@ -218,13 +256,21 @@ const formatDate = (date) => {
 }
 
 .post-btn {
-  background: #667eea;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
+  padding: 10px 24px;
+  border-radius: 20px;
   cursor: pointer;
   font-size: 14px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.post-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
 }
 
 .post-btn:disabled {
@@ -239,10 +285,18 @@ const formatDate = (date) => {
 }
 
 .post-card {
-  background: white;
-  border-radius: 12px;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  border: 1px solid rgba(255,255,255,0.5);
+  transition: all 0.3s ease;
+}
+
+.post-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.12);
 }
 
 .post-info {
@@ -252,12 +306,13 @@ const formatDate = (date) => {
 .post-info h4 {
   margin: 0;
   font-size: 16px;
+  font-weight: 600;
   color: #333;
 }
 
 .post-time {
-  color: #666;
-  font-size: 12px;
+  color: #999;
+  font-size: 13px;
 }
 
 .post-content {
@@ -266,28 +321,39 @@ const formatDate = (date) => {
 
 .post-content p {
   margin: 0 0 1rem 0;
-  line-height: 1.5;
+  line-height: 1.6;
+  color: #444;
 }
 
 .post-image {
   width: 100%;
-  max-height: 300px;
+  max-height: 400px;
   object-fit: cover;
-  border-radius: 8px;
+  border-radius: 12px;
+}
+
+.post-actions-bar {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(0,0,0,0.05);
 }
 
 .action-btn {
-  background: none;
+  background: rgba(102, 126, 234, 0.1);
   border: none;
   cursor: pointer;
-  padding: 0.5rem 1rem;
-  margin-right: 1rem;
-  border-radius: 6px;
-  transition: background 0.2s;
+  padding: 8px 16px;
+  border-radius: 20px;
+  transition: all 0.2s ease;
+  font-size: 14px;
+  color: #667eea;
+  font-weight: 500;
 }
 
 .action-btn:hover {
-  background: #f8f9fa;
+  background: rgba(102, 126, 234, 0.2);
+  transform: translateY(-1px);
 }
 
 .sidebar {
@@ -296,16 +362,58 @@ const formatDate = (date) => {
   gap: 1.5rem;
 }
 
-.widget {
-  background: white;
-  border-radius: 12px;
+.stats-widget {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
   padding: 1.5rem;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 8px 30px rgba(102, 126, 234, 0.3);
+  color: white;
+}
+
+.stats-widget h3 {
+  margin: 0 0 1.5rem 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+}
+
+.stat-item {
+  text-align: center;
+  background: rgba(255,255,255,0.15);
+  padding: 1rem;
+  border-radius: 12px;
+  backdrop-filter: blur(10px);
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  opacity: 0.9;
+}
+
+.widget {
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+  border: 1px solid rgba(255,255,255,0.5);
 }
 
 .widget h3 {
   margin: 0 0 1rem 0;
-  font-size: 18px;
+  font-size: 16px;
+  font-weight: 600;
   color: #333;
 }
 
@@ -313,7 +421,7 @@ const formatDate = (date) => {
   display: flex;
   gap: 1rem;
   padding: 1rem 0;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
 .race-item:last-child {
@@ -321,55 +429,83 @@ const formatDate = (date) => {
 }
 
 .race-date {
-  background: #667eea;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 0.5rem;
-  border-radius: 6px;
-  font-size: 12px;
+  padding: 0.75rem;
+  border-radius: 12px;
   text-align: center;
-  min-width: 50px;
+  min-width: 60px;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.date-day {
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.date-month {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  margin-top: 0.25rem;
+}
+
+.race-info {
+  flex: 1;
 }
 
 .race-info h4 {
-  margin: 0;
+  margin: 0 0 0.5rem 0;
   font-size: 14px;
+  font-weight: 600;
+  color: #333;
 }
 
 .race-info p {
-  margin: 0.25rem 0;
+  margin: 0 0 0.5rem 0;
   color: #666;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .race-distance {
-  background: #f8f9fa;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
-  font-size: 11px;
+  background: rgba(102, 126, 234, 0.1);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 12px;
   color: #667eea;
+  font-weight: 600;
 }
 
-.photo-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.5rem;
-}
-
-.photo-thumb {
+.view-all-btn {
   width: 100%;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 6px;
+  margin-top: 1rem;
+  padding: 10px;
+  background: rgba(102, 126, 234, 0.1);
+  border: none;
+  border-radius: 10px;
+  color: #667eea;
+  font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-@media (max-width: 768px) {
-  .feed-container {
+.view-all-btn:hover {
+  background: rgba(102, 126, 234, 0.2);
+}
+
+@media (max-width: 1024px) {
+  .main-content {
     grid-template-columns: 1fr;
   }
   
   .sidebar {
     order: -1;
+  }
+}
+
+@media (max-width: 768px) {
+  .stats-grid {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>

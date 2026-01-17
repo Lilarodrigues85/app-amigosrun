@@ -85,7 +85,10 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue'
+import { useAuth } from '@/composables/useAuth'
 import { corridaService } from '@/services/corridaService'
+
+const { isInitialized } = useAuth()
 
 const mesAtual = ref(new Date().getMonth())
 const anoAtual = ref(new Date().getFullYear())
@@ -162,7 +165,14 @@ const getCorridasDoDia = (data) => {
 }
 
 const carregarCorridas = async () => {
+  // Only load if Firebase is initialized
+  if (!isInitialized.value) {
+    console.log('Firebase not initialized yet, waiting...')
+    return
+  }
+
   try {
+    console.log('Loading corridas for calendar...')
     corridas.value = await corridaService.getCorridasDoMes(anoAtual.value, mesAtual.value + 1)
   } catch (error) {
     console.error('Erro ao carregar corridas:', error)
@@ -220,11 +230,24 @@ const abrirLink = (url) => {
 }
 
 watch([mesAtual, anoAtual], () => {
-  carregarCorridas()
+  if (isInitialized.value) {
+    carregarCorridas()
+  }
 })
 
+// Watch for Firebase initialization
+watch(isInitialized, (initialized) => {
+  if (initialized) {
+    console.log('Firebase initialized, loading calendar corridas')
+    carregarCorridas()
+  }
+}, { immediate: true })
+
 onMounted(() => {
-  carregarCorridas()
+  // Only load if already initialized
+  if (isInitialized.value) {
+    carregarCorridas()
+  }
 })
 </script>
 

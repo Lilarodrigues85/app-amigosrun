@@ -43,9 +43,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { useAuth } from '@/composables/useAuth'
 import { feedService } from '@/services/feedService'
 
+const { user, isInitialized } = useAuth()
 const posts = ref([])
 let unsubscribe = null
 
@@ -64,14 +66,48 @@ function formatTime(timestamp) {
   })
 }
 
+function startFeedListener() {
+  if (unsubscribe) unsubscribe()
+  
+  if (user.value) {
+    console.log('Starting feed listener for authenticated user')
+    unsubscribe = feedService.onPostsChange((newPosts) => {
+      posts.value = newPosts
+    })
+  } else {
+    console.log('No authenticated user, clearing posts')
+    posts.value = []
+  }
+}
+
+function stopFeedListener() {
+  if (unsubscribe) {
+    console.log('Stopping feed listener')
+    unsubscribe()
+    unsubscribe = null
+  }
+}
+
+// Watch for auth state changes
+watch([user, isInitialized], ([newUser, initialized]) => {
+  if (initialized) {
+    if (newUser) {
+      startFeedListener()
+    } else {
+      stopFeedListener()
+    }
+  }
+}, { immediate: true })
+
 onMounted(() => {
-  unsubscribe = feedService.onPostsChange((newPosts) => {
-    posts.value = newPosts
-  })
+  // Only start listener if already initialized and authenticated
+  if (isInitialized.value && user.value) {
+    startFeedListener()
+  }
 })
 
 onUnmounted(() => {
-  if (unsubscribe) unsubscribe()
+  stopFeedListener()
 })
 </script>
 

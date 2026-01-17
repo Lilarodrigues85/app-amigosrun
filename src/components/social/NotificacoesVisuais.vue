@@ -25,11 +25,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, watch } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { notificacaoService } from '@/services/notificacaoService'
 
-const { user } = useAuth()
+const { user, isInitialized } = useAuth()
 const notificacoes = ref([])
 let unsubscribe = null
 
@@ -61,16 +61,48 @@ async function removerNotificacao(notifId) {
   }
 }
 
-onMounted(() => {
+function startNotificationListener() {
+  if (unsubscribe) unsubscribe()
+  
   if (user.value) {
+    console.log('Starting notification listener for authenticated user')
     unsubscribe = notificacaoService.onNotificacoesChange(user.value.uid, (novasNotifs) => {
       notificacoes.value = novasNotifs.filter(n => !n.lida)
     })
+  } else {
+    console.log('No authenticated user, clearing notifications')
+    notificacoes.value = []
+  }
+}
+
+function stopNotificationListener() {
+  if (unsubscribe) {
+    console.log('Stopping notification listener')
+    unsubscribe()
+    unsubscribe = null
+  }
+}
+
+// Watch for auth state changes
+watch([user, isInitialized], ([newUser, initialized]) => {
+  if (initialized) {
+    if (newUser) {
+      startNotificationListener()
+    } else {
+      stopNotificationListener()
+    }
+  }
+}, { immediate: true })
+
+onMounted(() => {
+  // Only start listener if already initialized and authenticated
+  if (isInitialized.value && user.value) {
+    startNotificationListener()
   }
 })
 
 onUnmounted(() => {
-  if (unsubscribe) unsubscribe()
+  stopNotificationListener()
 })
 </script>
 

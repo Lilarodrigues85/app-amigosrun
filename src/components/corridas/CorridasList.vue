@@ -100,13 +100,13 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { corridaService } from '@/services/corridaService'
 import { useAuth } from '@/composables/useAuth'
 import CorridaForm from './CorridaForm.vue'
 import PresencaButton from '@/components/social/PresencaButton.vue'
 
-const { user } = useAuth()
+const { user, isInitialized } = useAuth()
 
 const corridas = ref([])
 const loading = ref(true)
@@ -114,8 +114,15 @@ const showForm = ref(false)
 const editingCorrida = ref(null)
 
 const loadCorridas = async () => {
+  // Only load if Firebase is initialized
+  if (!isInitialized.value) {
+    console.log('Firebase not initialized yet, waiting...')
+    return
+  }
+
   try {
     loading.value = true
+    console.log('Loading corridas...')
     corridas.value = await corridaService.getCorridas()
   } catch (error) {
     console.error('Erro ao carregar corridas:', error)
@@ -162,8 +169,19 @@ const handleFormSuccess = () => {
   loadCorridas()
 }
 
+// Watch for Firebase initialization
+watch(isInitialized, (initialized) => {
+  if (initialized) {
+    console.log('Firebase initialized, loading corridas')
+    loadCorridas()
+  }
+}, { immediate: true })
+
 onMounted(() => {
-  loadCorridas()
+  // Only load if already initialized
+  if (isInitialized.value) {
+    loadCorridas()
+  }
 })
 </script>
 

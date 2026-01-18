@@ -19,7 +19,12 @@
       >
         <!-- Ícone do Clima -->
         <div class="weather-icon-container">
-          <div class="weather-icon-large">{{ getWeatherEmoji(day.icon, day.description) }}</div>
+          <div 
+            class="weather-icon-large"
+            :data-icon="getWeatherEmoji(day.icon, day.description)"
+          >
+            {{ getWeatherEmoji(day.icon, day.description) }}
+          </div>
           <div class="wind-indicator">
             <span class="wind-icon">💨</span>
             <span class="wind-speed">{{ day.windSpeed }}km/h</span>
@@ -231,8 +236,8 @@ onMounted(() => {
 
 .weather-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 0.5rem;
   max-width: 100%;
   overflow-x: auto;
   padding: 0.5rem 0;
@@ -240,29 +245,29 @@ onMounted(() => {
 
 .weather-card {
   background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
-  border-radius: 20px;
-  padding: 1.5rem 1rem;
+  border-radius: 12px;
+  padding: 0.75rem 0.5rem;
   color: white;
   text-align: center;
   position: relative;
-  min-height: 280px;
+  min-height: 160px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.15);
   border: 1px solid rgba(255,255,255,0.1);
   transition: all 0.3s ease;
 }
 
 .weather-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.25);
 }
 
 .weather-card.today {
   background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
   border: 2px solid rgba(255,255,255,0.2);
-  transform: scale(1.05);
+  transform: scale(1.02);
 }
 
 .weather-card.sunny {
@@ -279,28 +284,122 @@ onMounted(() => {
 
 .weather-icon-container {
   position: relative;
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .weather-icon-large {
-  font-size: 3rem;
-  margin-bottom: 0.5rem;
-  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
+  font-size: 1.8rem;
+  margin-bottom: 0.25rem;
+  position: relative;
+  display: inline-block;
+  transform-style: preserve-3d;
+  perspective: 1000px;
+  animation: float3d 4s ease-in-out infinite;
+  
+  /* Efeito 3D avançado */
+  text-shadow: 
+    0 1px 0 rgba(0,0,0,0.4),
+    0 2px 0 rgba(0,0,0,0.3),
+    0 3px 0 rgba(0,0,0,0.2),
+    0 4px 0 rgba(0,0,0,0.1),
+    0 5px 10px rgba(0,0,0,0.4),
+    0 10px 20px rgba(0,0,0,0.2);
+  
+  /* Gradiente 3D */
+  background: linear-gradient(145deg, 
+    rgba(255,255,255,0.3) 0%, 
+    rgba(255,255,255,0.1) 30%,
+    rgba(0,0,0,0.1) 70%,
+    rgba(0,0,0,0.2) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  
+  /* Brilho interno */
+  filter: 
+    drop-shadow(0 0 5px rgba(255,255,255,0.3))
+    drop-shadow(0 2px 4px rgba(0,0,0,0.4))
+    drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+}
+
+.weather-icon-large::before {
+  content: attr(data-icon);
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  z-index: -1;
+  color: rgba(0,0,0,0.4);
+  filter: blur(2px);
+  transform: scale(1.05);
+}
+
+.weather-icon-large::after {
+  content: attr(data-icon);
+  position: absolute;
+  top: -1px;
+  left: -1px;
+  z-index: -2;
+  background: linear-gradient(45deg, rgba(255,255,255,0.6), rgba(255,255,255,0.2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  transform: scale(0.98);
+}
+
+@keyframes float3d {
+  0%, 100% { 
+    transform: translateY(0) rotateX(0deg) rotateY(0deg) rotateZ(0deg); 
+    filter: 
+      drop-shadow(0 0 5px rgba(255,255,255,0.3))
+      drop-shadow(0 2px 4px rgba(0,0,0,0.4))
+      drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+  }
+  25% { 
+    transform: translateY(-4px) rotateX(8deg) rotateY(-5deg) rotateZ(2deg); 
+    filter: 
+      drop-shadow(0 0 8px rgba(255,255,255,0.4))
+      drop-shadow(0 3px 6px rgba(0,0,0,0.5))
+      drop-shadow(0 6px 12px rgba(0,0,0,0.3));
+  }
+  50% { 
+    transform: translateY(-8px) rotateX(0deg) rotateY(0deg) rotateZ(0deg); 
+    filter: 
+      drop-shadow(0 0 10px rgba(255,255,255,0.5))
+      drop-shadow(0 4px 8px rgba(0,0,0,0.6))
+      drop-shadow(0 8px 16px rgba(0,0,0,0.4));
+  }
+  75% { 
+    transform: translateY(-4px) rotateX(-8deg) rotateY(5deg) rotateZ(-2deg); 
+    filter: 
+      drop-shadow(0 0 8px rgba(255,255,255,0.4))
+      drop-shadow(0 3px 6px rgba(0,0,0,0.5))
+      drop-shadow(0 6px 12px rgba(0,0,0,0.3));
+  }
 }
 
 .wind-indicator {
   position: absolute;
-  top: 0;
-  right: 0;
+  top: -3px;
+  right: -3px;
   display: flex;
   align-items: center;
-  gap: 0.25rem;
-  font-size: 0.75rem;
+  gap: 0.15rem;
+  font-size: 0.6rem;
   opacity: 0.8;
+  background: rgba(0,0,0,0.25);
+  padding: 0.15rem 0.3rem;
+  border-radius: 6px;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255,255,255,0.1);
 }
 
 .wind-icon {
-  font-size: 1rem;
+  font-size: 0.7rem;
+  animation: windBlow 2s ease-in-out infinite;
+}
+
+@keyframes windBlow {
+  0%, 100% { transform: translateX(0); }
+  50% { transform: translateX(2px); }
 }
 
 .wind-speed {
@@ -308,20 +407,20 @@ onMounted(() => {
 }
 
 .temperature-main {
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
 }
 
 .temp-value {
   display: block;
-  font-size: 2.5rem;
+  font-size: 1.5rem;
   font-weight: 700;
   line-height: 1;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
   text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
 .temp-period {
-  font-size: 0.75rem;
+  font-size: 0.6rem;
   opacity: 0.8;
   font-weight: 500;
   letter-spacing: 0.5px;
@@ -330,21 +429,21 @@ onMounted(() => {
 .weather-info {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+  gap: 0.25rem;
+  margin-bottom: 0.5rem;
 }
 
 .info-row {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
+  gap: 0.25rem;
+  font-size: 0.65rem;
   opacity: 0.9;
 }
 
 .info-icon {
-  font-size: 1rem;
+  font-size: 0.7rem;
 }
 
 .info-text {
@@ -353,13 +452,13 @@ onMounted(() => {
 
 .rainbow-indicator {
   position: absolute;
-  top: 1rem;
-  left: 1rem;
+  top: 0.5rem;
+  left: 0.5rem;
   animation: rainbow-pulse 2s ease-in-out infinite;
 }
 
 .rainbow-icon {
-  font-size: 1.5rem;
+  font-size: 1rem;
   filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
 }
 
@@ -371,9 +470,9 @@ onMounted(() => {
 .day-label {
   background: rgba(255,255,255,0.2);
   backdrop-filter: blur(10px);
-  padding: 0.5rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
+  padding: 0.25rem 0.4rem;
+  border-radius: 6px;
+  font-size: 0.6rem;
   font-weight: 600;
   letter-spacing: 0.5px;
   border: 1px solid rgba(255,255,255,0.1);
@@ -381,21 +480,21 @@ onMounted(() => {
 
 @media (max-width: 768px) {
   .weather-cards-grid {
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(70px, 1fr));
+    gap: 0.4rem;
   }
   
   .weather-card {
-    min-height: 240px;
-    padding: 1rem 0.75rem;
+    min-height: 140px;
+    padding: 0.6rem 0.4rem;
   }
   
   .weather-icon-large {
-    font-size: 2.5rem;
+    font-size: 1.6rem;
   }
   
   .temp-value {
-    font-size: 2rem;
+    font-size: 1.3rem;
   }
 }
 
@@ -403,13 +502,31 @@ onMounted(() => {
   .weather-cards-grid {
     display: flex;
     overflow-x: auto;
-    gap: 0.75rem;
+    gap: 0.4rem;
     padding-bottom: 0.5rem;
   }
   
   .weather-card {
-    flex: 0 0 110px;
-    min-height: 220px;
+    flex: 0 0 70px;
+    min-height: 130px;
+    padding: 0.5rem 0.3rem;
+  }
+  
+  .weather-icon-large {
+    font-size: 1.4rem;
+  }
+  
+  .temp-value {
+    font-size: 1.2rem;
+  }
+  
+  .info-row {
+    font-size: 0.6rem;
+  }
+  
+  .day-label {
+    font-size: 0.55rem;
+    padding: 0.2rem 0.3rem;
   }
 }
 </style>

@@ -22,9 +22,10 @@ import AppHeader from './AppHeader.vue'
 }
 
 .main-content {
-  padding: 2rem;
+  padding: 1rem 2rem 2rem;
   max-width: 1200px;
   margin: 0 auto;
+  min-height: calc(100vh - 60px);
 }
 
 @media (max-width: 768px) {

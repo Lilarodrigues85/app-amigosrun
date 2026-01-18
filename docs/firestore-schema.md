@@ -95,30 +95,49 @@
 
 ---
 
-### 📁 feed/{postId}
-**Descrição**: Feed social da plataforma
+### 📁 posts/{postId}
+**Descrição**: Feed social da plataforma - Posts dos usuários
 
 **Campos**:
 ```javascript
 {
-  userId: string,          // UID do autor
-  userName: string,        // Nome do autor
-  userPhoto: string,       // Foto do autor
-  content: string,         // Conteúdo do post
-  type: string,            // "text" | "run_completed" | "run_registered"
-  runId: string | null,    // ID da corrida (se aplicável)
-  imageUrl: string | null, // Imagem do post
-  likes: number,           // Número de curtidas
-  comments: number,        // Número de comentários
-  createdAt: timestamp,    // Data de criação
-  updatedAt: timestamp     // Última atualização
+  userId: string,          // UID do autor (obrigatório)
+  tipo: string,            // Tipo do post: "text" | "confirmacao" | "foto" | "comentario"
+  conteudo: string,        // Conteúdo/texto do post
+  corridaId: string | null, // ID da corrida relacionada (opcional)
+  timestamp: timestamp,    // Data de criação (serverTimestamp)
+  likes: number            // Número de curtidas (inicia em 0)
 }
 ```
 
 **Regras de Segurança**:
-- ✅ Leitura: Pública
+- ✅ Leitura: Pública (qualquer um pode ver posts)
 - ✅ Criação: Usuários autenticados
 - ✅ Edição/Exclusão: Apenas o autor
+
+**Exemplo**:
+```javascript
+{
+  userId: "abc123xyz",
+  tipo: "text",
+  conteudo: "Acabei de completar minha primeira corrida de 10K! 🏃‍♀️💪",
+  corridaId: null,
+  timestamp: Timestamp(2025-01-17 10:30:00),
+  likes: 0
+}
+```
+
+**Índices**:
+- `timestamp` (descendente) - Para buscar posts recentes
+- `userId + timestamp` (descendente) - Para posts de um usuário
+- `tipo + timestamp` (descendente) - Para filtrar por tipo
+
+---
+
+### 📁 feed/{postId} (DEPRECATED - Use `posts` ao invés)
+**Descrição**: Collection antiga do feed (mantida para compatibilidade)
+
+**Nota**: Novos posts devem ser criados na collection `posts`
 
 ---
 

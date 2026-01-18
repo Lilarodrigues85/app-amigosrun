@@ -25,7 +25,7 @@
           </div>
 
           <div v-if="profile.weight || profile.height" class="profile-stats">
-            <h3>Informações</h3>
+            <h3>Informações Pessoais</h3>
             <div class="stats-grid">
               <div v-if="profile.weight" class="stat">
                 <span class="stat-label">Peso</span>
@@ -34,6 +34,29 @@
               <div v-if="profile.height" class="stat">
                 <span class="stat-label">Altura</span>
                 <span class="stat-value">{{ profile.height }}cm</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Estatísticas de Corrida -->
+          <div v-if="profile.stats" class="running-stats">
+            <h3>📊 Estatísticas de Corrida</h3>
+            <div class="stats-grid-running">
+              <div class="stat-running">
+                <span class="stat-value-large">{{ profile.stats.totalRuns || 0 }}</span>
+                <span class="stat-label">Corridas</span>
+              </div>
+              <div class="stat-running">
+                <span class="stat-value-large">{{ profile.stats.totalDistance || 0 }}km</span>
+                <span class="stat-label">Total</span>
+              </div>
+              <div class="stat-running">
+                <span class="stat-value-large">{{ profile.stats.averagePace || '--' }}</span>
+                <span class="stat-label">Pace Médio</span>
+              </div>
+              <div class="stat-running">
+                <span class="stat-value-large">{{ profile.stats.friends || 0 }}</span>
+                <span class="stat-label">Amigos</span>
               </div>
             </div>
           </div>
@@ -204,6 +227,50 @@ onMounted(() => {
   font-weight: 600;
 }
 
+.running-stats {
+  margin-bottom: 2rem;
+}
+
+.running-stats h3 {
+  color: white;
+  margin: 0 0 1.5rem 0;
+  font-size: 1.1rem;
+  text-align: center;
+}
+
+.stats-grid-running {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+  padding: 1.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+.stat-running {
+  text-align: center;
+  background: rgba(255,255,255,0.1);
+  padding: 1rem;
+  border-radius: 8px;
+  backdrop-filter: blur(5px);
+}
+
+.stat-value-large {
+  display: block;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.stat-running .stat-label {
+  color: rgba(255,255,255,0.8);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
 .profile-footer {
   margin-top: 2rem;
   text-align: center;
@@ -233,6 +300,10 @@ onMounted(() => {
   
   .stats-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .stats-grid-running {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 </style>

@@ -65,6 +65,25 @@ export function useAuth() {
       })
       
       const result = await signInWithPopup(auth, provider)
+      
+      // Verificar se o perfil existe no Firestore, se não, criar
+      const { userService } = await import('@/services/userService')
+      const existingProfile = await userService.getProfile(result.user.uid)
+      
+      if (!existingProfile) {
+        await userService.createProfile(result.user.uid, {
+          name: result.user.displayName || result.user.email?.split('@')[0] || 'Usuário',
+          email: result.user.email,
+          photoUrl: result.user.photoURL,
+          stats: {
+            totalRuns: 0,
+            totalDistance: 0,
+            averagePace: '',
+            friends: 0
+          }
+        })
+      }
+      
       console.log('Google login successful:', result.user.email)
       return result.user
     } catch (error) {
@@ -75,13 +94,26 @@ export function useAuth() {
     }
   }
 
-  const register = async (email, password, name) => {
+  const register = async (email, password, name, stats = null) => {
     try {
       loading.value = true
       const userCredential = await createUserWithEmailAndPassword(auth, email, password)
       
       await updateProfile(userCredential.user, {
         displayName: name
+      })
+
+      // Sempre criar perfil no Firestore
+      const { userService } = await import('@/services/userService')
+      await userService.createProfile(userCredential.user.uid, {
+        name,
+        email,
+        stats: {
+          totalRuns: stats?.totalRuns || 0,
+          totalDistance: stats?.totalDistance || 0,
+          averagePace: stats?.averagePace || '',
+          friends: stats?.friends || 0
+        }
       })
       
       await sendEmailVerification(userCredential.user)

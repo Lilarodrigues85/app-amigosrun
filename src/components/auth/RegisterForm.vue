@@ -52,6 +52,58 @@
       </span>
     </div>
 
+    <!-- Estatísticas Iniciais -->
+    <div class="stats-section">
+      <h3>📊 Suas Estatísticas Iniciais</h3>
+      <p class="stats-subtitle">Nos conte um pouco sobre sua experiência com corrida</p>
+      
+      <div class="stats-grid">
+        <div class="form-group">
+          <label class="form-label">Corridas Realizadas</label>
+          <input
+            v-model.number="form.stats.totalRuns"
+            type="number"
+            min="0"
+            placeholder="0"
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Quilometragem Total (km)</label>
+          <input
+            v-model.number="form.stats.totalDistance"
+            type="number"
+            min="0"
+            step="0.1"
+            placeholder="0"
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Pace Médio (min/km)</label>
+          <input
+            v-model="form.stats.averagePace"
+            type="text"
+            placeholder="5:30"
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Amigos Corredores</label>
+          <input
+            v-model.number="form.stats.friends"
+            type="number"
+            min="0"
+            placeholder="0"
+            class="form-input"
+          />
+        </div>
+      </div>
+    </div>
+
     <button type="submit" :disabled="loading || !isValidForm" class="auth-button">
       <span v-if="!loading">Cadastrar</span>
       <span v-else class="loading-spinner">Cadastrando...</span>
@@ -89,7 +141,13 @@ const form = ref({
   name: '',
   email: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+  stats: {
+    totalRuns: 0,
+    totalDistance: 0,
+    averagePace: '',
+    friends: 0
+  }
 })
 
 const loading = ref(false)
@@ -112,8 +170,9 @@ const handleRegister = async () => {
   error.value = ''
 
   try {
-    await register(form.value.email, form.value.password, form.value.name)
-    router.push('/')
+    await register(form.value.email, form.value.password, form.value.name, form.value.stats)
+    // Após registro, redireciona para perfil para completar dados
+    router.push('/perfil')
   } catch (err) {
     error.value = err.message
   } finally {
@@ -127,7 +186,8 @@ const handleGoogleLogin = async () => {
 
   try {
     await loginWithGoogle()
-    router.push('/')
+    // Redireciona para perfil após login com Google
+    router.push('/perfil')
   } catch (err) {
     error.value = err.message
   } finally {
@@ -162,12 +222,14 @@ const handleGoogleLogin = async () => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .form-label {
   color: white;
   font-weight: 500;
   font-size: 0.9rem;
+  line-height: 1.2;
 }
 
 .form-input {
@@ -178,6 +240,9 @@ const handleGoogleLogin = async () => {
   color: white;
   font-size: 16px;
   transition: all 0.3s ease;
+  height: 48px;
+  box-sizing: border-box;
+  line-height: 1.5;
 }
 
 .form-input:focus {
@@ -303,5 +368,47 @@ const handleGoogleLogin = async () => {
 .google-icon {
   width: 20px;
   height: 20px;
+}
+
+.stats-section {
+  background: rgba(255,255,255,0.1);
+  border-radius: 12px;
+  padding: 1.5rem;
+  border: 1px solid rgba(255,255,255,0.2);
+  backdrop-filter: blur(5px);
+}
+
+.stats-section h3 {
+  color: white;
+  margin: 0 0 0.5rem 0;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.stats-subtitle {
+  color: rgba(255,255,255,0.8);
+  margin: 0 0 1.5rem 0;
+  font-size: 0.9rem;
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
+  align-items: end;
+}
+
+.stats-grid .form-group {
+  margin-bottom: 0;
+}
+
+@media (max-width: 480px) {
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .form-input {
+    font-size: 16px; /* Evita zoom no iOS */
+  }
 }
 </style>

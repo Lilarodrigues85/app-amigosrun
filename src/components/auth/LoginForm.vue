@@ -72,7 +72,8 @@ const handleLogin = async () => {
 
   try {
     await login(form.value.email, form.value.password)
-    router.push('/')
+    // O router guard vai redirecionar automaticamente para perfil se necessário
+    router.push('/perfil')
   } catch (err) {
     error.value = err.message
   } finally {
@@ -86,7 +87,8 @@ const handleGoogleLogin = async () => {
 
   try {
     await loginWithGoogle()
-    router.push('/')
+    // O router guard vai redirecionar automaticamente para perfil se necessário
+    router.push('/perfil')
   } catch (err) {
     error.value = err.message
   } finally {
@@ -121,12 +123,14 @@ const handleGoogleLogin = async () => {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
+  margin-bottom: 0.5rem;
 }
 
 .form-label {
   color: white;
   font-weight: 500;
   font-size: 0.9rem;
+  line-height: 1.2;
 }
 
 .form-input {
@@ -137,6 +141,9 @@ const handleGoogleLogin = async () => {
   color: white;
   font-size: 16px;
   transition: all 0.3s ease;
+  height: 48px;
+  box-sizing: border-box;
+  line-height: 1.5;
 }
 
 .form-input:focus {

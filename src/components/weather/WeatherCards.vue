@@ -1,7 +1,5 @@
 <template>
-  <div class="weather-cards">
-    <h3 class="weather-title">🌤️ Previsão do Tempo</h3>
-    
+  <div class="weather-cards-container">
     <div v-if="loading" class="loading-state">
       <div class="loading-spinner"></div>
       <p>Carregando previsão...</p>
@@ -12,96 +10,54 @@
       <button @click="loadWeather" class="retry-btn">Tentar novamente</button>
     </div>
     
-    <div v-else class="weather-grid">
+    <div v-else class="weather-cards-grid">
       <div 
         v-for="(day, index) in forecast" 
         :key="index"
         class="weather-card"
-        :class="{ 'today': index === 0 }"
+        :class="getCardClass(day, index)"
       >
-        <!-- Header do Card -->
-        <div class="card-header">
-          <div class="day-info">
-            <span class="day-name">{{ getDayName(day.date, index) }}</span>
-            <span class="day-date">{{ formatDate(day.date) }}</span>
-          </div>
-          <img 
-            :src="getWeatherIcon(day.icon)" 
-            :alt="day.description"
-            class="weather-icon"
-          />
-        </div>
-        
-        <!-- Temperatura -->
-        <div class="temperature-section">
-          <div class="temp-main">
-            <span class="temp-max">{{ day.maxTemp }}°</span>
-            <span class="temp-min">{{ day.minTemp }}°</span>
-          </div>
-          <p class="weather-desc">{{ day.description }}</p>
-        </div>
-        
-        <!-- Informações Detalhadas -->
-        <div class="weather-details">
-          <!-- Chuva -->
-          <div class="detail-item">
-            <span class="detail-icon">🌧️</span>
-            <div class="detail-info">
-              <span class="detail-label">Chuva</span>
-              <span class="detail-value">{{ getRainChance(day) }}%</span>
-            </div>
-          </div>
-          
-          <!-- Vento -->
-          <div class="detail-item">
-            <span class="detail-icon">💨</span>
-            <div class="detail-info">
-              <span class="detail-label">Vento</span>
-              <span class="detail-value">{{ day.windSpeed }} km/h</span>
-            </div>
-          </div>
-          
-          <!-- Umidade -->
-          <div class="detail-item">
-            <span class="detail-icon">💧</span>
-            <div class="detail-info">
-              <span class="detail-label">Umidade</span>
-              <span class="detail-value">{{ day.humidity }}%</span>
-            </div>
-          </div>
-          
-          <!-- Sol -->
-          <div class="detail-item">
-            <span class="detail-icon">☀️</span>
-            <div class="detail-info">
-              <span class="detail-label">UV</span>
-              <span class="detail-value">{{ getUVIndex(day) }}</span>
-            </div>
+        <!-- Ícone do Clima -->
+        <div class="weather-icon-container">
+          <div class="weather-icon-large">{{ getWeatherEmoji(day.icon, day.description) }}</div>
+          <div class="wind-indicator">
+            <span class="wind-icon">💨</span>
+            <span class="wind-speed">{{ day.windSpeed }}km/h</span>
           </div>
         </div>
         
-        <!-- Previsão de Arco-íris -->
-        <div v-if="hasRainbowChance(day)" class="rainbow-prediction">
+        <!-- Temperatura Principal -->
+        <div class="temperature-main">
+          <span class="temp-value">{{ day.maxTemp }}°</span>
+          <span class="temp-period">{{ getTimePeriod(index) }}</span>
+        </div>
+        
+        <!-- Informações Secundárias -->
+        <div class="weather-info">
+          <div class="info-row">
+            <span class="info-icon">🌧️</span>
+            <span class="info-text">{{ getRainChance(day) }}%</span>
+          </div>
+          <div class="info-row">
+            <span class="info-icon">💧</span>
+            <span class="info-text">{{ day.humidity }}%</span>
+          </div>
+          <div class="info-row">
+            <span class="info-icon">☀️</span>
+            <span class="info-text">UV {{ getUVIndex(day) }}</span>
+          </div>
+        </div>
+        
+        <!-- Arco-íris -->
+        <div v-if="hasRainbowChance(day)" class="rainbow-indicator">
           <span class="rainbow-icon">🌈</span>
-          <span class="rainbow-text">Possível arco-íris!</span>
         </div>
         
-        <!-- Recomendação para Corrida -->
-        <div class="running-recommendation">
-          <div 
-            class="recommendation-badge"
-            :class="getRecommendationClass(day)"
-          >
-            {{ getRunningRecommendation(day) }}
-          </div>
+        <!-- Label do Dia -->
+        <div class="day-label">
+          {{ getDayLabel(day.date, index) }}
         </div>
       </div>
-    </div>
-    
-    <!-- Localização -->
-    <div v-if="currentLocation" class="location-info">
-      <span class="location-icon">📍</span>
-      <span>{{ currentLocation }}</span>
     </div>
   </div>
 </template>
@@ -113,14 +69,12 @@ import { weatherService } from '@/services/weatherService'
 const forecast = ref([])
 const loading = ref(true)
 const error = ref('')
-const currentLocation = ref('')
 
 const loadWeather = async () => {
   loading.value = true
   error.value = ''
   
   try {
-    // Tentar obter localização do usuário
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         async (position) => {
@@ -128,7 +82,6 @@ const loadWeather = async () => {
           await fetchWeatherData(latitude, longitude)
         },
         async () => {
-          // Fallback para São Paulo se não conseguir localização
           await fetchWeatherDataByCity('São Paulo')
         }
       )
@@ -143,11 +96,8 @@ const loadWeather = async () => {
 
 const fetchWeatherData = async (lat, lon) => {
   try {
-    const forecastData = await weatherService.getForecast(lat, lon, 5)
-    const currentWeather = await weatherService.getCurrentWeather(lat, lon)
-    
+    const forecastData = await weatherService.getForecast(lat, lon, 6)
     forecast.value = forecastData
-    currentLocation.value = currentWeather.city
     loading.value = false
   } catch (err) {
     error.value = err.message
@@ -161,11 +111,10 @@ const fetchWeatherDataByCity = async (cityName) => {
     const forecastData = await weatherService.getForecast(
       currentWeather.coordinates.lat, 
       currentWeather.coordinates.lon, 
-      5
+      6
     )
     
     forecast.value = forecastData
-    currentLocation.value = currentWeather.city
     loading.value = false
   } catch (err) {
     error.value = err.message
@@ -173,26 +122,50 @@ const fetchWeatherDataByCity = async (cityName) => {
   }
 }
 
-const getDayName = (date, index) => {
-  if (index === 0) return 'Hoje'
-  if (index === 1) return 'Amanhã'
+const getWeatherEmoji = (iconCode, description) => {
+  const desc = description.toLowerCase()
   
-  return date.toLocaleDateString('pt-BR', { weekday: 'short' })
+  if (desc.includes('sol') || desc.includes('limpo') || iconCode.includes('01')) return '☀️'
+  if (desc.includes('parcial') || iconCode.includes('02')) return '⛅'
+  if (desc.includes('nuvem') || desc.includes('nublado') || iconCode.includes('03') || iconCode.includes('04')) return '☁️'
+  if (desc.includes('chuva') || desc.includes('chuvisco') || iconCode.includes('09') || iconCode.includes('10')) return '🌧️'
+  if (desc.includes('tempestade') || iconCode.includes('11')) return '⛈️'
+  if (desc.includes('neve') || iconCode.includes('13')) return '❄️'
+  if (desc.includes('névoa') || desc.includes('neblina') || iconCode.includes('50')) return '🌫️'
+  
+  return '🌤️'
 }
 
-const formatDate = (date) => {
-  return date.toLocaleDateString('pt-BR', { 
-    day: '2-digit', 
-    month: '2-digit' 
-  })
+const getCardClass = (day, index) => {
+  const classes = []
+  
+  // Classe baseada no clima
+  const desc = day.description.toLowerCase()
+  if (desc.includes('sol') || desc.includes('limpo')) classes.push('sunny')
+  else if (desc.includes('chuva') || desc.includes('tempestade')) classes.push('rainy')
+  else if (desc.includes('nuvem')) classes.push('cloudy')
+  else classes.push('default')
+  
+  // Destaque para hoje
+  if (index === 0) classes.push('today')
+  
+  return classes.join(' ')
 }
 
-const getWeatherIcon = (iconCode) => {
-  return weatherService.getWeatherIcon(iconCode)
+const getTimePeriod = (index) => {
+  if (index === 0) return 'AGORA'
+  if (index === 1) return 'AMANHÃ'
+  return 'PREVISÃO'
+}
+
+const getDayLabel = (date, index) => {
+  if (index === 0) return 'HOJE'
+  if (index === 1) return 'AMANHÃ'
+  
+  return date.toLocaleDateString('pt-BR', { weekday: 'short' }).toUpperCase()
 }
 
 const getRainChance = (day) => {
-  // Simula chance de chuva baseada na descrição
   const desc = day.description.toLowerCase()
   if (desc.includes('chuva') || desc.includes('chuvisco')) return Math.floor(Math.random() * 40) + 60
   if (desc.includes('nuvem')) return Math.floor(Math.random() * 30) + 20
@@ -200,39 +173,15 @@ const getRainChance = (day) => {
 }
 
 const getUVIndex = (day) => {
-  // Simula índice UV baseado na temperatura
   if (day.maxTemp > 25) return 'Alto'
   if (day.maxTemp > 20) return 'Médio'
   return 'Baixo'
 }
 
 const hasRainbowChance = (day) => {
-  // Arco-íris: sol + chuva
   const rainChance = getRainChance(day)
   const hasSun = !day.description.toLowerCase().includes('nublado')
   return rainChance > 30 && rainChance < 80 && hasSun
-}
-
-const getRunningRecommendation = (day) => {
-  const temp = (day.maxTemp + day.minTemp) / 2
-  const humidity = day.humidity
-  
-  if (temp < 10) return '❄️ Muito Frio'
-  if (temp > 30) return '🔥 Muito Quente'
-  if (humidity > 80) return '💧 Muito Úmido'
-  if (getRainChance(day) > 70) return '🌧️ Chuva'
-  
-  return '✅ Ideal'
-}
-
-const getRecommendationClass = (day) => {
-  const recommendation = getRunningRecommendation(day)
-  
-  if (recommendation.includes('Ideal')) return 'good'
-  if (recommendation.includes('Frio') || recommendation.includes('Quente') || recommendation.includes('Úmido')) return 'warning'
-  if (recommendation.includes('Chuva')) return 'bad'
-  
-  return 'neutral'
 }
 
 onMounted(() => {
@@ -241,34 +190,25 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.weather-cards {
-  background: rgba(255,255,255,0.95);
-  backdrop-filter: blur(10px);
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-  border: 1px solid rgba(255,255,255,0.5);
-}
-
-.weather-title {
-  margin: 0 0 1.5rem 0;
-  font-size: 18px;
-  font-weight: 600;
-  color: #333;
-  text-align: center;
+.weather-cards-container {
+  margin-bottom: 2rem;
 }
 
 .loading-state, .error-state {
   text-align: center;
   padding: 2rem;
-  color: #666;
+  color: white;
+  background: rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.2);
 }
 
 .loading-spinner {
   width: 40px;
   height: 40px;
-  border: 4px solid rgba(102, 126, 234, 0.2);
-  border-top: 4px solid #667eea;
+  border: 4px solid rgba(255,255,255,0.3);
+  border-top: 4px solid white;
   border-radius: 50%;
   animation: spin 1s linear infinite;
   margin: 0 auto 1rem;
@@ -280,211 +220,196 @@ onMounted(() => {
 }
 
 .retry-btn {
-  background: #667eea;
+  background: rgba(255,255,255,0.2);
   color: white;
-  border: none;
+  border: 1px solid rgba(255,255,255,0.3);
   padding: 8px 16px;
   border-radius: 8px;
   cursor: pointer;
   margin-top: 1rem;
 }
 
-.weather-grid {
+.weather-cards-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   gap: 1rem;
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 0.5rem 0;
 }
 
 .weather-card {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  border-radius: 12px;
-  padding: 1rem;
-  border: 1px solid rgba(102, 126, 234, 0.2);
-  transition: all 0.3s ease;
+  background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #60a5fa 100%);
+  border-radius: 20px;
+  padding: 1.5rem 1rem;
+  color: white;
+  text-align: center;
   position: relative;
-  overflow: hidden;
-}
-
-.weather-card.today {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
-  border: 2px solid rgba(102, 126, 234, 0.4);
-  transform: scale(1.02);
+  min-height: 280px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,255,255,0.1);
+  transition: all 0.3s ease;
 }
 
 .weather-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.2);
+  transform: translateY(-5px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
 }
 
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.weather-card.today {
+  background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
+  border: 2px solid rgba(255,255,255,0.2);
+  transform: scale(1.05);
+}
+
+.weather-card.sunny {
+  background: linear-gradient(135deg, #f59e0b 0%, #f97316 50%, #ea580c 100%);
+}
+
+.weather-card.rainy {
+  background: linear-gradient(135deg, #1e40af 0%, #1d4ed8 50%, #2563eb 100%);
+}
+
+.weather-card.cloudy {
+  background: linear-gradient(135deg, #374151 0%, #4b5563 50%, #6b7280 100%);
+}
+
+.weather-icon-container {
+  position: relative;
   margin-bottom: 1rem;
 }
 
-.day-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.day-name {
-  font-weight: 600;
-  font-size: 16px;
-  color: #333;
-}
-
-.day-date {
-  font-size: 12px;
-  color: #666;
-}
-
-.weather-icon {
-  width: 50px;
-  height: 50px;
-}
-
-.temperature-section {
-  text-align: center;
-  margin-bottom: 1rem;
-}
-
-.temp-main {
-  display: flex;
-  justify-content: center;
-  align-items: baseline;
-  gap: 0.5rem;
+.weather-icon-large {
+  font-size: 3rem;
   margin-bottom: 0.5rem;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.3));
 }
 
-.temp-max {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #333;
-}
-
-.temp-min {
-  font-size: 1.2rem;
-  color: #666;
-}
-
-.weather-desc {
-  font-size: 14px;
-  color: #666;
-  margin: 0;
-  text-transform: capitalize;
-}
-
-.weather-details {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 0.75rem;
-  margin-bottom: 1rem;
-}
-
-.detail-item {
+.wind-indicator {
+  position: absolute;
+  top: 0;
+  right: 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  background: rgba(255,255,255,0.5);
-  padding: 0.5rem;
-  border-radius: 8px;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  opacity: 0.8;
 }
 
-.detail-icon {
-  font-size: 16px;
+.wind-icon {
+  font-size: 1rem;
 }
 
-.detail-info {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-}
-
-.detail-label {
-  font-size: 11px;
-  color: #666;
-  text-transform: uppercase;
+.wind-speed {
   font-weight: 500;
 }
 
-.detail-value {
-  font-size: 13px;
-  font-weight: 600;
-  color: #333;
-}
-
-.rainbow-prediction {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  background: linear-gradient(90deg, #ff6b6b, #feca57, #48dbfb, #ff9ff3);
-  color: white;
-  padding: 0.5rem;
-  border-radius: 8px;
+.temperature-main {
   margin-bottom: 1rem;
-  font-size: 14px;
-  font-weight: 600;
-  text-shadow: 0 1px 2px rgba(0,0,0,0.3);
 }
 
-.running-recommendation {
-  text-align: center;
+.temp-value {
+  display: block;
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1;
+  margin-bottom: 0.25rem;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
 
-.recommendation-badge {
-  display: inline-block;
-  padding: 0.5rem 1rem;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
+.temp-period {
+  font-size: 0.75rem;
+  opacity: 0.8;
+  font-weight: 500;
+  letter-spacing: 0.5px;
 }
 
-.recommendation-badge.good {
-  background: rgba(16, 185, 129, 0.2);
-  color: #059669;
+.weather-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
-.recommendation-badge.warning {
-  background: rgba(245, 158, 11, 0.2);
-  color: #d97706;
-}
-
-.recommendation-badge.bad {
-  background: rgba(239, 68, 68, 0.2);
-  color: #dc2626;
-}
-
-.recommendation-badge.neutral {
-  background: rgba(107, 114, 128, 0.2);
-  color: #4b5563;
-}
-
-.location-info {
+.info-row {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
-  margin-top: 1rem;
-  padding-top: 1rem;
-  border-top: 1px solid rgba(0,0,0,0.1);
-  font-size: 14px;
-  color: #666;
+  font-size: 0.875rem;
+  opacity: 0.9;
 }
 
-.location-icon {
-  font-size: 16px;
+.info-icon {
+  font-size: 1rem;
+}
+
+.info-text {
+  font-weight: 500;
+}
+
+.rainbow-indicator {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  animation: rainbow-pulse 2s ease-in-out infinite;
+}
+
+.rainbow-icon {
+  font-size: 1.5rem;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+@keyframes rainbow-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.8; }
+  50% { transform: scale(1.1); opacity: 1; }
+}
+
+.day-label {
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+  padding: 0.5rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  border: 1px solid rgba(255,255,255,0.1);
 }
 
 @media (max-width: 768px) {
-  .weather-grid {
-    grid-template-columns: 1fr;
+  .weather-cards-grid {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.75rem;
   }
   
-  .weather-details {
-    grid-template-columns: 1fr;
+  .weather-card {
+    min-height: 240px;
+    padding: 1rem 0.75rem;
+  }
+  
+  .weather-icon-large {
+    font-size: 2.5rem;
+  }
+  
+  .temp-value {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .weather-cards-grid {
+    display: flex;
+    overflow-x: auto;
+    gap: 0.75rem;
+    padding-bottom: 0.5rem;
+  }
+  
+  .weather-card {
+    flex: 0 0 110px;
+    min-height: 220px;
   }
 }
 </style>

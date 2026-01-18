@@ -4,6 +4,9 @@
     <div class="main-content">
       <!-- Feed Container -->
       <div class="feed-container">
+        <!-- Weather Cards -->
+        <WeatherCards />
+
         <!-- Create Post -->
         <div class="create-post-card">
           <div class="post-header">
@@ -55,9 +58,6 @@
 
       <!-- Sidebar -->
       <div class="sidebar">
-        <!-- Weather Cards -->
-        <WeatherCards />
-
         <!-- Quick Stats -->
         <div class="stats-widget">
           <h3>📊 Suas Estatísticas</h3>

@@ -55,6 +55,9 @@
 
       <!-- Sidebar -->
       <div class="sidebar">
+        <!-- Weather Cards -->
+        <WeatherCards />
+
         <!-- Quick Stats -->
         <div class="stats-widget">
           <h3>📊 Suas Estatísticas</h3>
@@ -109,6 +112,7 @@
 import { ref } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import FeedSocial from '@/components/social/FeedSocial.vue'
+import WeatherCards from '@/components/weather/WeatherCards.vue'
 
 const { user } = useAuth()
 const newPost = ref('')

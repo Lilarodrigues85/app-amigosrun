@@ -21,7 +21,12 @@
     <div v-else class="corridas-grid">
       <div v-for="corrida in corridas" :key="corrida.id" class="corrida-card">
         <div v-if="corrida.imagem" class="corrida-image">
-          <img :src="corrida.imagem" :alt="corrida.titulo" />
+          <img 
+            :src="corrida.imagem" 
+            :alt="corrida.titulo"
+            loading="lazy"
+            decoding="async"
+          />
         </div>
         
         <div class="corrida-content">
@@ -244,6 +249,8 @@ onMounted(() => {
   background-size: cover;
   background-position: center;
   padding: 2rem;
+  padding-top: calc(2rem + env(safe-area-inset-top)); /* Safe area iOS */
+  padding-bottom: calc(2rem + env(safe-area-inset-bottom));
 }
 
 .list-header {
@@ -266,6 +273,7 @@ onMounted(() => {
   color: white;
   border: 1px solid rgba(255,255,255,0.3);
   padding: 0.75rem 1.5rem;
+  min-height: 44px; /* Touch target */
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
@@ -287,6 +295,7 @@ onMounted(() => {
   color: white;
   border: 1px solid rgba(255,255,255,0.3);
   padding: 1rem 2rem;
+  min-height: 44px; /* Touch target */
   border-radius: 8px;
   cursor: pointer;
   margin-top: 1rem;
@@ -455,12 +464,16 @@ onMounted(() => {
 .btn-inscricao,
 .btn-edit {
   padding: 0.5rem 1rem;
+  min-height: 44px; /* Touch target */
   border: none;
   border-radius: 6px;
   cursor: pointer;
   font-size: 0.85rem;
   transition: all 0.3s ease;
   flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-inscricao {
@@ -534,6 +547,8 @@ onMounted(() => {
 @media (max-width: 768px) {
   .corridas-list {
     padding: 1rem;
+    padding-top: calc(1rem + env(safe-area-inset-top));
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
   }
   
   .list-header {
@@ -544,6 +559,84 @@ onMounted(() => {
   
   .corridas-grid {
     grid-template-columns: 1fr;
+  }
+  
+  .modal-content {
+    max-height: 95vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .corridas-list {
+    padding: 0.75rem;
+    padding-top: calc(0.75rem + env(safe-area-inset-top));
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+  
+  .list-header h2 {
+    font-size: 1.25rem;
+  }
+  
+  .btn-add {
+    padding: 0.625rem 1.25rem;
+    font-size: 0.875rem;
+  }
+  
+  .corrida-card {
+    border-radius: 8px;
+  }
+  
+  .corrida-content {
+    padding: 1rem;
+  }
+  
+  .corrida-header h3 {
+    font-size: 1rem;
+  }
+  
+  .distance-badge {
+    font-size: 0.75rem;
+    padding: 0.3rem 0.7rem;
+  }
+  
+  .info-item {
+    font-size: 0.8rem;
+  }
+  
+  .descricao-item {
+    font-size: 0.75rem;
+  }
+  
+  .btn-inscricao,
+  .btn-edit {
+    font-size: 0.8rem;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  /* Modal full-screen em mobile pequeno */
+  .modal-overlay {
+    padding: 0;
+  }
+  
+  .modal-content {
+    max-width: 100%;
+    max-height: 100vh;
+    border-radius: 0;
+  }
+}
+
+/* Orientação landscape */
+@media (max-height: 500px) and (orientation: landscape) {
+  .corridas-list {
+    padding: 0.5rem;
+  }
+  
+  .corrida-image {
+    height: 120px;
+  }
+  
+  .modal-content {
+    max-height: 95vh;
   }
 }
 </style>

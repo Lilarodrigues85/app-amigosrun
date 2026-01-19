@@ -224,12 +224,15 @@ const logout = async () => {
   position: sticky;
   top: 0;
   z-index: 100;
+  padding-top: env(safe-area-inset-top); /* Safe area iOS */
 }
 
 .header-container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 0.5rem 2rem;
+  padding-left: max(2rem, env(safe-area-inset-left));
+  padding-right: max(2rem, env(safe-area-inset-right));
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -258,7 +261,10 @@ const logout = async () => {
   text-decoration: none;
   font-weight: 500;
   transition: all 0.3s ease;
-  padding: 0.4rem 0.8rem;
+  padding: 0.5rem 0.8rem;
+  min-height: 44px; /* Touch target */
+  display: flex;
+  align-items: center;
   border-radius: 8px;
   font-size: 0.9rem;
 }
@@ -354,6 +360,11 @@ const logout = async () => {
 .avatar-link {
   display: block;
   line-height: 0;
+  min-width: 44px; /* Touch target */
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .avatar {
@@ -376,11 +387,14 @@ const logout = async () => {
   background: rgba(255, 255, 255, 0.2);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
-  padding: 0.4rem 0.8rem;
+  padding: 0.5rem 0.8rem;
+  min-height: 44px; /* Touch target */
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
   font-size: 0.9rem;
+  display: flex;
+  align-items: center;
 }
 
 .logout-btn:hover {
@@ -396,6 +410,10 @@ const logout = async () => {
   border: none;
   cursor: pointer;
   padding: 0.5rem;
+  min-width: 44px; /* Touch target */
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
 }
 
 .mobile-menu-btn span {
@@ -411,6 +429,9 @@ const logout = async () => {
   backdrop-filter: blur(10px);
   border-top: 1px solid rgba(255, 255, 255, 0.2);
   padding: 1rem 2rem;
+  padding-left: max(2rem, env(safe-area-inset-left));
+  padding-right: max(2rem, env(safe-area-inset-right));
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -420,8 +441,12 @@ const logout = async () => {
   color: white;
   text-decoration: none;
   padding: 0.75rem 1rem;
+  min-height: 44px; /* Touch target */
+  display: flex;
+  align-items: center;
   border-radius: 8px;
   transition: all 0.3s ease;
+  font-size: 1rem;
 }
 
 .nav-link-mobile:hover,
@@ -434,10 +459,12 @@ const logout = async () => {
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.3);
   padding: 0.75rem 1rem;
+  min-height: 44px; /* Touch target */
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.3s ease;
   text-align: left;
+  font-size: 1rem;
 }
 
 .logout-btn-mobile:hover {
@@ -456,6 +483,40 @@ const logout = async () => {
 
   .header-container {
     padding: 1rem;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+  
+  .nav-mobile {
+    padding: 1rem;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
+  }
+}
+
+@media (max-width: 480px) {
+  .header-container {
+    padding: 0.75rem;
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+    min-height: 56px;
+  }
+  
+  .logo-img {
+    height: 38px;
+  }
+  
+  .nav-mobile {
+    padding: 0.75rem;
+    padding-left: max(0.75rem, env(safe-area-inset-left));
+    padding-right: max(0.75rem, env(safe-area-inset-right));
+    gap: 0.75rem;
+  }
+  
+  .nav-link-mobile,
+  .logout-btn-mobile {
+    font-size: 0.9rem;
+    padding: 0.625rem 0.875rem;
   }
 }
 
@@ -466,6 +527,23 @@ const logout = async () => {
   
   .user-menu {
     gap: 1rem;
+  }
+}
+
+/* Orientação landscape em mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .header-container {
+    min-height: 50px;
+    padding: 0.375rem 1rem;
+  }
+  
+  .logo-img {
+    height: 35px;
+  }
+  
+  .nav-mobile {
+    max-height: 70vh;
+    overflow-y: auto;
   }
 }
 </style>

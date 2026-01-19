@@ -1945,17 +1945,56 @@ onUnmounted(() => {
 }
 
 @media (max-width: 768px) {
+  .home {
+    padding: 1rem;
+    padding-top: calc(1rem + env(safe-area-inset-top));
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+  
+  .main-content {
+    gap: 1rem;
+  }
+  
   .create-post-card {
-    padding: 1.5rem;
+    padding: 1rem;
+  }
+  
+  .create-post-header {
+    gap: 0.75rem;
+  }
+  
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+  }
+  
+  .greeting-text {
+    font-size: 1rem;
+  }
+  
+  .greeting-subtext {
+    font-size: 0.75rem;
+  }
+  
+  .post-textarea {
+    font-size: 0.9rem;
+    min-height: 80px;
   }
   
   .post-actions-row {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.75rem;
   }
   
   .post-options {
-    justify-content: space-between;
+    justify-content: space-around;
+    gap: 0.5rem;
+  }
+  
+  .option-btn {
+    flex: 1;
+    min-width: 60px;
   }
   
   .option-text {
@@ -1973,10 +2012,166 @@ onUnmounted(() => {
   
   .action-button {
     padding: 0.75rem;
+    min-height: 44px;
   }
   
   .stats-grid {
     grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+  
+  .widget {
+    padding: 1rem;
+  }
+  
+  .widget-title {
+    font-size: 1rem;
+  }
+  
+  .race-card {
+    padding: 0.875rem;
+  }
+  
+  .race-title {
+    font-size: 0.9rem;
+  }
+  
+  .race-date {
+    font-size: 0.75rem;
+  }
+  
+  .race-location {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .home {
+    padding: 0.75rem;
+    padding-top: calc(0.75rem + env(safe-area-inset-top));
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+  
+  .create-post-card {
+    padding: 0.875rem;
+    border-radius: 12px;
+  }
+  
+  .user-avatar {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .greeting-text {
+    font-size: 0.9rem;
+  }
+  
+  .greeting-subtext {
+    font-size: 0.7rem;
+  }
+  
+  .post-textarea {
+    font-size: 0.875rem;
+    min-height: 70px;
+    padding: 0.75rem;
+  }
+  
+  .char-count {
+    font-size: 0.7rem;
+  }
+  
+  .option-btn {
+    padding: 0.5rem;
+    min-height: 44px;
+    font-size: 1.25rem;
+  }
+  
+  .publish-btn {
+    padding: 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .stats-grid {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+  
+  .stat-card {
+    padding: 0.875rem;
+  }
+  
+  .stat-value {
+    font-size: 1.5rem;
+  }
+  
+  .stat-label {
+    font-size: 0.75rem;
+  }
+  
+  .widget {
+    padding: 0.875rem;
+    border-radius: 12px;
+  }
+  
+  .widget-title {
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .race-card {
+    padding: 0.75rem;
+  }
+  
+  .race-title {
+    font-size: 0.85rem;
+  }
+  
+  .race-date {
+    font-size: 0.7rem;
+  }
+  
+  .race-location {
+    font-size: 0.75rem;
+  }
+  
+  .distance-badge {
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+  }
+  
+  .meta-item {
+    font-size: 0.7rem;
+  }
+  
+  .view-all-btn {
+    font-size: 0.85rem;
+    padding: 0.75rem;
+  }
+  
+  .emoji-picker {
+    width: 100%;
+    max-width: none;
+    left: 0;
+    right: 0;
+  }
+}
+
+/* Orientação landscape em mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .home {
+    padding: 0.5rem;
+  }
+  
+  .create-post-card {
+    padding: 0.75rem;
+  }
+  
+  .post-textarea {
+    min-height: 60px;
+  }
+  
+  .widget {
+    padding: 0.75rem;
   }
 }
 </style>

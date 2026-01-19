@@ -711,11 +711,28 @@ onMounted(() => {
     padding: 1rem;
     min-height: 100vh;
     align-items: flex-start;
-    padding-top: 2rem;
+    padding-top: calc(1rem + env(safe-area-inset-top));
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+  
+  .profile-container {
+    width: 100%;
+    max-width: 100%;
   }
   
   .profile-form {
-    padding: 1.5rem;
+    padding: 1.25rem;
+    border-radius: 12px;
+  }
+  
+  .profile-form h2 {
+    font-size: 1.25rem;
+  }
+  
+  .profile-subtitle {
+    font-size: 0.85rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
   }
   
   .form-columns {
@@ -725,12 +742,12 @@ onMounted(() => {
   
   .form-row {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.75rem;
   }
   
   .stats-grid {
     grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.75rem;
   }
   
   .avatar {
@@ -743,15 +760,156 @@ onMounted(() => {
     margin-bottom: 1rem;
   }
   
+  .photo-options button {
+    min-height: 44px;
+    font-size: 0.9rem;
+  }
+  
+  .form-group label {
+    font-size: 0.9rem;
+  }
+  
   .form-group input,
   .form-group select,
   .form-group textarea {
     font-size: 16px; /* Evita zoom no iOS */
+    padding: 0.75rem;
+    min-height: 44px;
+  }
+  
+  .stats-section h3 {
+    font-size: 1rem;
+  }
+  
+  .submit-btn {
+    min-height: 48px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .profile-page {
+    padding: 0.75rem;
+    padding-top: calc(0.75rem + env(safe-area-inset-top));
+    padding-bottom: calc(0.75rem + env(safe-area-inset-bottom));
+  }
+  
+  .profile-form {
+    padding: 1rem;
+    border-radius: 10px;
+  }
+  
+  .profile-form h2 {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
   }
   
   .profile-subtitle {
+    font-size: 0.8rem;
+    padding: 0.625rem;
+    margin-bottom: 0.875rem;
+  }
+  
+  .photo-section {
+    padding: 0.875rem;
+    margin-bottom: 0.875rem;
+  }
+  
+  .avatar {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .photo-options button {
+    padding: 0.625rem 1rem;
+    font-size: 0.85rem;
+  }
+  
+  .form-group {
+    margin-bottom: 0.875rem;
+  }
+  
+  .form-group label {
+    font-size: 0.85rem;
+    margin-bottom: 0.375rem;
+  }
+  
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    padding: 0.625rem;
+    font-size: 16px;
+  }
+  
+  .form-row {
+    gap: 0.625rem;
+  }
+  
+  .stats-section {
+    padding: 0.875rem;
+  }
+  
+  .stats-section h3 {
+    font-size: 0.95rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .stats-grid {
+    gap: 0.625rem;
+  }
+  
+  .submit-btn {
+    padding: 0.875rem;
+    font-size: 0.95rem;
+    min-height: 48px;
+  }
+  
+  .message {
+    font-size: 0.85rem;
     padding: 0.75rem;
-    margin-bottom: 1rem;
+  }
+}
+
+/* Orientação landscape em mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .profile-page {
+    padding: 0.5rem;
+    align-items: flex-start;
+  }
+  
+  .profile-form {
+    padding: 0.875rem;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  
+  .profile-form h2 {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .profile-subtitle {
+    font-size: 0.75rem;
+    padding: 0.5rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .photo-section {
+    padding: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+  
+  .avatar {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .form-group {
+    margin-bottom: 0.75rem;
+  }
+  
+  .stats-section {
+    padding: 0.75rem;
   }
 }
 </style>

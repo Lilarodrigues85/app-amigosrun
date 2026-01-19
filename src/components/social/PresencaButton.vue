@@ -142,6 +142,7 @@ onUnmounted(() => {
 
 .btn-presenca {
   width: 100%;
+  min-height: 44px; /* Touch target mínimo */
   padding: 0.5rem 0.75rem;
   border: 2px solid transparent;
   border-radius: 6px;
@@ -151,6 +152,9 @@ onUnmounted(() => {
   transition: all 0.3s ease;
   background: rgba(255,255,255,0.1);
   color: rgba(255,255,255,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .btn-presenca:hover:not(:disabled) {
@@ -209,13 +213,49 @@ onUnmounted(() => {
   
   .btn-presenca {
     font-size: 0.75rem;
-    padding: 0.4rem 0.5rem;
+    padding: 0.5rem 0.5rem;
+    min-height: 44px; /* Mantém touch target */
   }
   
   .contador-item {
     font-size: 0.7rem;
     min-width: 25px;
     padding: 0.1rem 0.25rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .presenca-options {
+    gap: 0.25rem;
+  }
+  
+  .presenca-col {
+    max-width: 75px;
+    gap: 0.2rem;
+  }
+  
+  .btn-presenca {
+    font-size: 0.7rem;
+    padding: 0.5rem 0.375rem;
+    min-height: 44px; /* Touch target sempre 44px */
+  }
+  
+  .contador-item {
+    font-size: 0.65rem;
+    min-width: 22px;
+    padding: 0.1rem 0.2rem;
+  }
+}
+
+/* Orientação landscape em mobile */
+@media (max-height: 500px) and (orientation: landscape) {
+  .presenca-options {
+    gap: 0.5rem;
+  }
+  
+  .btn-presenca {
+    min-height: 40px;
+    padding: 0.375rem 0.75rem;
   }
 }
 </style>

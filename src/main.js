@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
 import { useAuth } from '@/composables/useAuth'
+import '@/assets/css/accessibility.css'
 
 // Aguardar inicialização do Firebase Auth
 const { waitForAuthInit } = useAuth()

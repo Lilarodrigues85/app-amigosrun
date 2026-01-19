@@ -4,11 +4,23 @@
     <main class="main-content">
       <slot />
     </main>
+    
+    <!-- Modal de Aviso de Sessão -->
+    <SessionTimeoutWarning 
+      :show="showWarning" 
+      @extend="extendSession"
+      @logout="logout"
+    />
   </div>
 </template>
 
 <script setup>
 import AppHeader from './AppHeader.vue'
+import SessionTimeoutWarning from '@/components/common/SessionTimeoutWarning.vue'
+import { useSessionTimeout } from '@/composables/useSessionTimeout'
+
+// Configurar timeout de 60 minutos (1 hora)
+const { showWarning, extendSession, logout } = useSessionTimeout(60)
 </script>
 
 <style scoped>

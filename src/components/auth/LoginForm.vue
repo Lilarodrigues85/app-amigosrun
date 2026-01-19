@@ -72,8 +72,8 @@ const handleLogin = async () => {
 
   try {
     await login(form.value.email, form.value.password)
-    // O router guard vai redirecionar automaticamente para perfil se necessário
-    router.push('/perfil')
+    // O router guard vai redirecionar automaticamente
+    router.push('/')
   } catch (err) {
     error.value = err.message
   } finally {
@@ -87,8 +87,8 @@ const handleGoogleLogin = async () => {
 
   try {
     await loginWithGoogle()
-    // O router guard vai redirecionar automaticamente para perfil se necessário
-    router.push('/perfil')
+    // O router guard vai redirecionar automaticamente
+    router.push('/')
   } catch (err) {
     error.value = err.message
   } finally {

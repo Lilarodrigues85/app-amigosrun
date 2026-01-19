@@ -1,0 +1,12 @@
+{
+  "email": "dalila.analistadesistema@gmail.com",
+  "role": "admin",
+  "name": "Dalila",
+  "createdAt": {
+    "__datatype__": "timestamp",
+    "value": {
+      "_seconds": 1737241200,
+      "_nanoseconds": 0
+    }
+  }
+}

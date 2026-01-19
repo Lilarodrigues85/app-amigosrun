@@ -258,18 +258,68 @@
         <!-- Upcoming Races -->
         <div class="widget">
           <h3>🏃‍♀️ Próximas Corridas</h3>
-          <div v-for="race in upcomingRaces" :key="race.id" class="race-item">
-            <div class="race-date">
-              <div class="date-day">{{ formatDay(race.date) }}</div>
-              <div class="date-month">{{ formatMonth(race.date) }}</div>
-            </div>
-            <div class="race-info">
-              <h4>{{ race.name }}</h4>
-              <p>📍 {{ race.location }}</p>
-              <span class="race-distance">{{ race.distance }}</span>
-            </div>
+          
+          <div v-if="loadingRaces" class="loading-state">
+            <div class="spinner"></div>
+            <p>Carregando corridas...</p>
           </div>
-          <button class="view-all-btn">Ver todas as corridas →</button>
+          
+          <div v-else-if="upcomingRaces.length === 0" class="empty-state">
+            <div class="empty-icon">📅</div>
+            <p>Nenhuma corrida agendada</p>
+            <router-link to="/corridas" class="create-race-link">
+              Criar corrida →
+            </router-link>
+          </div>
+          
+          <div v-else>
+            <div v-for="race in upcomingRaces" :key="race.id" class="race-item">
+              <div class="race-date">
+                <div class="date-day">{{ formatDay(race.data) }}</div>
+                <div class="date-month">{{ formatMonth(race.data) }}</div>
+              </div>
+              <div class="race-info">
+                <h4>{{ race.titulo }}</h4>
+                <p class="race-location">📍 {{ race.local }}</p>
+                
+                <div class="race-details">
+                  <div v-if="race.distancias && race.distancias.length > 0" class="race-distances">
+                    <span 
+                      v-for="distancia in race.distancias.slice(0, 3)" 
+                      :key="distancia"
+                      class="distance-tag"
+                    >
+                      {{ distancia }}
+                    </span>
+                    <span v-if="race.distancias.length > 3" class="more-distances">
+                      +{{ race.distancias.length - 3 }}
+                    </span>
+                  </div>
+                  
+                  <div class="race-meta">
+                    <span v-if="race.valor || race.valor60" class="meta-item valores-meta">
+                      <span class="meta-icon">💰</span>
+                      <span class="meta-text">
+                        <span v-if="race.valor">R$ {{ formatPrice(race.valor) }}</span>
+                        <span v-if="race.valor60" class="valor-60-tag">60+: R$ {{ formatPrice(race.valor60) }}</span>
+                      </span>
+                    </span>
+                    <span v-if="race.vagas" class="meta-item">
+                      <span class="meta-icon">👥</span>
+                      <span class="meta-text">{{ race.vagas }} vagas</span>
+                    </span>
+                  </div>
+                </div>
+                
+                <router-link :to="`/corridas`" class="race-details-link">
+                  Ver detalhes →
+                </router-link>
+              </div>
+            </div>
+            <router-link to="/corridas" class="view-all-btn">
+              Ver todas as corridas →
+            </router-link>
+          </div>
         </div>
 
         <!-- Social Feed Widget -->
@@ -288,6 +338,7 @@ import { useAuth } from '@/composables/useAuth'
 import { userService } from '@/services/userService'
 import { feedService } from '@/services/feedService'
 import { cloudinaryService } from '@/services/cloudinaryService'
+import { corridaService } from '@/services/corridaService'
 import FeedSocial from '@/components/social/FeedSocial.vue'
 import WeatherCards from '@/components/weather/WeatherCards.vue'
 
@@ -320,22 +371,37 @@ const userStats = ref({
 const posts = ref([])
 let unsubscribePosts = null
 
-const upcomingRaces = ref([
-  {
-    id: 1,
-    name: 'Corrida do Parque',
-    location: 'Parque Ibirapuera',
-    distance: '5K',
-    date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-  },
-  {
-    id: 2,
-    name: 'Maratona da Cidade',
-    location: 'Centro da Cidade',
-    distance: '21K',
-    date: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+const upcomingRaces = ref([])
+const loadingRaces = ref(true)
+
+const loadUpcomingRaces = async () => {
+  console.log('🔵 [Home] Carregando próximas corridas')
+  loadingRaces.value = true
+  
+  try {
+    const allRaces = await corridaService.getCorridas()
+    console.log('📦 [Home] Corridas recebidas:', allRaces.length)
+    
+    // Filtrar apenas corridas futuras
+    const now = new Date()
+    const futureRaces = allRaces.filter(race => {
+      const raceDate = new Date(race.data)
+      return raceDate > now
+    })
+    
+    // Ordenar por data e pegar as 3 próximas
+    upcomingRaces.value = futureRaces
+      .sort((a, b) => new Date(a.data) - new Date(b.data))
+      .slice(0, 3)
+    
+    console.log('✅ [Home] Próximas corridas carregadas:', upcomingRaces.value.length)
+  } catch (error) {
+    console.error('❌ [Home] Erro ao carregar corridas:', error)
+    upcomingRaces.value = []
+  } finally {
+    loadingRaces.value = false
   }
-])
+}
 
 const loadUserStats = async () => {
   console.log('🔵 [Home] Carregando estatísticas do usuário')
@@ -605,12 +671,57 @@ const formatTime = (date) => {
   return `${Math.floor(hours / 24)}d atrás`
 }
 
-const formatDay = (date) => {
-  return date.getDate()
+const formatPrice = (price) => {
+  if (!price) return '0,00'
+  return parseFloat(price).toFixed(2).replace('.', ',')
 }
 
-const formatMonth = (date) => {
-  return date.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase()
+const formatDay = (dateString) => {
+  if (!dateString) return '?'
+  
+  try {
+    // Se for um Timestamp do Firestore
+    if (dateString.toDate && typeof dateString.toDate === 'function') {
+      return dateString.toDate().getDate()
+    }
+    
+    // Se for uma string ou número
+    const date = new Date(dateString)
+    
+    // Verifica se é uma data válida
+    if (isNaN(date.getTime())) {
+      return '?'
+    }
+    
+    return date.getDate()
+  } catch (error) {
+    console.error('Erro ao formatar dia:', error, dateString)
+    return '?'
+  }
+}
+
+const formatMonth = (dateString) => {
+  if (!dateString) return '?'
+  
+  try {
+    // Se for um Timestamp do Firestore
+    if (dateString.toDate && typeof dateString.toDate === 'function') {
+      return dateString.toDate().toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase()
+    }
+    
+    // Se for uma string ou número
+    const date = new Date(dateString)
+    
+    // Verifica se é uma data válida
+    if (isNaN(date.getTime())) {
+      return '?'
+    }
+    
+    return date.toLocaleDateString('pt-BR', { month: 'short' }).toUpperCase()
+  } catch (error) {
+    console.error('Erro ao formatar mês:', error, dateString)
+    return '?'
+  }
 }
 
 const getPostTypeLabel = (tipo) => {
@@ -715,6 +826,7 @@ onMounted(() => {
   console.log('🔵 [Home] Componente montado')
   loadUserStats()
   loadPosts()
+  loadUpcomingRaces()
   document.addEventListener('click', handleClickOutside)
 })
 
@@ -1407,6 +1519,11 @@ onUnmounted(() => {
   gap: 1rem;
   padding: 1rem 0;
   border-bottom: 1px solid rgba(0,0,0,0.05);
+  transition: all 0.3s ease;
+}
+
+.race-item:hover {
+  transform: translateX(4px);
 }
 
 .race-item:last-child {
@@ -1421,6 +1538,7 @@ onUnmounted(() => {
   text-align: center;
   min-width: 60px;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  flex-shrink: 0;
 }
 
 .date-day {
@@ -1437,28 +1555,114 @@ onUnmounted(() => {
 
 .race-info {
   flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .race-info h4 {
-  margin: 0 0 0.5rem 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #2d3748;
+  line-height: 1.3;
 }
 
-.race-info p {
-  margin: 0 0 0.5rem 0;
-  color: #666;
+.race-location {
+  margin: 0;
+  color: #718096;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.race-details {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.race-distances {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.distance-tag {
+  background: rgba(59, 130, 246, 0.12);
+  color: #3b82f6;
+  padding: 0.25rem 0.625rem;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.more-distances {
+  background: rgba(102, 126, 234, 0.08);
+  color: #667eea;
+  padding: 0.25rem 0.5rem;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.race-meta {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 12px;
+  color: #4a5568;
+}
+
+.meta-item.valores-meta {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.125rem;
+}
+
+.meta-item.valores-meta .meta-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+.valor-60-tag {
+  color: #f59e0b;
+  font-weight: 600;
+  font-size: 11px;
+}
+
+.meta-icon {
   font-size: 13px;
 }
 
-.race-distance {
-  background: rgba(102, 126, 234, 0.1);
-  padding: 4px 12px;
-  border-radius: 12px;
+.meta-text {
+  font-weight: 600;
+}
+
+.race-details-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
   font-size: 12px;
   color: #667eea;
   font-weight: 600;
+  text-decoration: none;
+  margin-top: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.race-details-link:hover {
+  color: #764ba2;
+  gap: 0.5rem;
 }
 
 .view-all-btn {
@@ -1472,10 +1676,78 @@ onUnmounted(() => {
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
+  text-decoration: none;
+  display: block;
+  text-align: center;
 }
 
 .view-all-btn:hover {
   background: rgba(102, 126, 234, 0.2);
+}
+
+.widget .loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  gap: 0.75rem;
+}
+
+.widget .spinner {
+  width: 30px;
+  height: 30px;
+  border: 3px solid rgba(102, 126, 234, 0.2);
+  border-top-color: #667eea;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.widget .loading-state p {
+  color: #666;
+  font-size: 0.875rem;
+  margin: 0;
+}
+
+.widget .empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem 1rem;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.widget .empty-icon {
+  font-size: 2.5rem;
+  opacity: 0.4;
+  margin-bottom: 0.5rem;
+}
+
+.widget .empty-state p {
+  color: #666;
+  font-size: 0.95rem;
+  font-weight: 500;
+  margin: 0;
+}
+
+.widget .create-race-link {
+  color: #667eea;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-top: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.widget .create-race-link:hover {
+  color: #5568d3;
+  text-decoration: underline;
 }
 
 /* Responsive */

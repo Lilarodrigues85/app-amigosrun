@@ -1,18 +1,38 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Users - leitura pública, escrita apenas pelo próprio usuário
-    match /users/{userId} {
-      allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+    // Função para verificar se é admin
+    function isAdmin() {
+      return exists(/databases/$(database)/documents/admins/$(request.auth.token.email));
     }
     
-    // Corridas - leitura pública, criação por autenticados, edição pelo criador
+    // Função para verificar se usuário está aprovado
+    function isApproved() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'approved';
+    }
+    
+    // Admins - apenas leitura para verificação
+    match /admins/{email} {
+      allow read: if request.auth != null;
+      allow write: if false; // Apenas via console
+    }
+    
+    // Users - leitura pública, criação livre, atualização restrita
+    match /users/{userId} {
+      allow read: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && request.auth.uid == userId;
+      // Apenas admins podem alterar status, usuários podem atualizar outros campos
+      allow update: if isAdmin() || 
+        (request.auth.uid == userId && !('status' in request.resource.data.diff(resource.data).affectedKeys()));
+    }
+    
+    // Corridas - apenas usuários aprovados
     match /corridas/{runId} {
       allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && 
-        request.auth.uid == resource.data.createdBy;
+      allow create: if request.auth != null && isApproved();
+      // Permite atualizar se for o organizador OU admin
+      allow update, delete: if request.auth != null && isApproved() &&
+        (request.auth.uid == resource.data.organizador || isAdmin());
       
       // Subcoleção de presenças
       match /presencas/{userId} {
@@ -21,44 +41,44 @@ service cloud.firestore {
       }
     }
     
-    // Feed/Posts - leitura pública, criação por autenticados, edição pelo autor
+    // Feed/Posts - apenas usuários aprovados
     match /feed/{postId} {
       allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && 
+      allow create: if request.auth != null && isApproved();
+      allow update, delete: if request.auth != null && isApproved() &&
         request.auth.uid == resource.data.userId;
     }
     
-    // Posts - cada usuário tem seu próprio documento com array de posts
+    // Posts - apenas usuários aprovados
     match /posts/{userId} {
       allow read: if true;
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow update: if request.auth != null && request.auth.uid == userId;
-      allow delete: if request.auth != null && request.auth.uid == userId;
+      allow create: if request.auth != null && isApproved() && request.auth.uid == userId;
+      allow update: if request.auth != null && isApproved() && request.auth.uid == userId;
+      allow delete: if request.auth != null && isApproved() && request.auth.uid == userId;
     }
     
-    // Locations/Localizacoes - leitura pública, escrita pelo próprio usuário
+    // Locations/Localizacoes - apenas usuários aprovados
     match /locations/{userId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow write: if request.auth != null && isApproved() && request.auth.uid == userId;
     }
     
     match /localizacoes/{localizacaoId} {
       allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && isApproved();
+      allow update, delete: if request.auth != null && isApproved() && request.auth.uid == resource.data.userId;
     }
     
-    // Notificações - apenas o destinatário pode ler/escrever
+    // Notificações - apenas usuários aprovados
     match /notificacoes/{notificationId} {
-      allow read, write: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow read, write: if request.auth != null && isApproved() && request.auth.uid == resource.data.userId;
     }
     
-    // Presenças - coleção global de presenças
+    // Presenças - apenas usuários aprovados
     match /presencas/{presencaId} {
       allow read: if true;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && request.auth.uid == resource.data.userId;
+      allow create: if request.auth != null && isApproved();
+      allow update, delete: if request.auth != null && isApproved() && request.auth.uid == resource.data.userId;
     }
   }
 }

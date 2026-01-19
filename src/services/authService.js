@@ -5,7 +5,8 @@ import {
   updateProfile,
   sendEmailVerification
 } from 'firebase/auth'
-import { auth } from '@/firebase/config'
+import { auth, db } from '@/firebase/config'
+import { doc, setDoc, getDoc, Timestamp } from 'firebase/firestore'
 
 export const authService = {
   async login(email, password) {
@@ -30,6 +31,21 @@ export const authService = {
         displayName
       })
       
+      // Criar documento no Firestore com status pending
+      await setDoc(doc(db, 'users', userCredential.user.uid), {
+        email,
+        name: displayName,
+        status: 'pending',
+        role: 'user',
+        requestedAt: Timestamp.now(),
+        createdAt: Timestamp.now(),
+        approvedAt: null,
+        approvedBy: null,
+        rejectedAt: null,
+        rejectedBy: null,
+        rejectionReason: null
+      })
+      
       await sendEmailVerification(userCredential.user)
       
       return userCredential.user
@@ -38,8 +54,34 @@ export const authService = {
     }
   },
 
+  /**
+   * Verifica o status de aprovação do usuário
+   */
+  async checkUserStatus(userId) {
+    try {
+      const userDoc = await getDoc(doc(db, 'users', userId))
+      
+      if (!userDoc.exists()) {
+        return { status: 'pending', role: 'user' }
+      }
+      
+      const userData = userDoc.data()
+      return {
+        status: userData.status || 'pending',
+        role: userData.role || 'user',
+        ...userData
+      }
+    } catch (error) {
+      console.error('Erro ao verificar status:', error)
+      return { status: 'pending', role: 'user' }
+    }
+  },
+
   async logout() {
     try {
+      // Limpar dados de sessão
+      localStorage.removeItem('lastActivity')
+      
       await signOut(auth)
     } catch (error) {
       throw new Error('Erro ao fazer logout')

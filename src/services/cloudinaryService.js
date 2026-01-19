@@ -1,5 +1,6 @@
 const CLOUDINARY_UPLOAD_PRESET = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'amigos-run'
 const CLOUDINARY_UPLOAD_PRESET_POSTS = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET_POSTS || 'amigos-run-posts'
+const CLOUDINARY_UPLOAD_PRESET_CORRIDAS = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET_CORRIDAS || 'corridas-run'
 const CLOUDINARY_CLOUD_NAME = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'dyxgdeunz'
 
 export const cloudinaryService = {
@@ -10,8 +11,14 @@ export const cloudinaryService = {
       const formData = new FormData()
       formData.append('file', file)
       
-      // Usar preset diferente para posts
-      const preset = folder === 'posts' ? CLOUDINARY_UPLOAD_PRESET_POSTS : CLOUDINARY_UPLOAD_PRESET
+      // Usar preset específico baseado na pasta
+      let preset = CLOUDINARY_UPLOAD_PRESET
+      if (folder === 'posts') {
+        preset = CLOUDINARY_UPLOAD_PRESET_POSTS
+      } else if (folder === 'corridas') {
+        preset = CLOUDINARY_UPLOAD_PRESET_CORRIDAS
+      }
+      
       formData.append('upload_preset', preset)
       formData.append('folder', folder)
       
@@ -40,6 +47,11 @@ export const cloudinaryService = {
   // Upload específico para posts
   async uploadPostImage(file) {
     return this.uploadImage(file, 'posts')
+  },
+
+  // Upload específico para corridas
+  async uploadCorridaImage(file) {
+    return this.uploadImage(file, 'corridas')
   },
 
   validateFile(file) {
@@ -97,6 +109,15 @@ export const cloudinaryService = {
       quality: 'auto',
       format: 'auto'
       // SEM gravity para posts (causava erro 400)
+    })
+  },
+
+  // Gera URL com transformações específicas para imagens de corridas
+  getCorridaImageUrl(url, width = 1200, height = 600) {
+    return this.getOptimizedUrl(url, width, height, {
+      crop: 'fill', // Preenche o espaço mantendo proporção
+      quality: 'auto',
+      format: 'auto'
     })
   },
 

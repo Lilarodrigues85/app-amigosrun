@@ -2,18 +2,23 @@ import { createRouter, createWebHistory } from 'vue-router'
 import { auth } from '@/firebase/config'
 import { onAuthStateChanged } from 'firebase/auth'
 import { userService } from '@/services/userService'
+import { authService } from '@/services/authService'
+import { adminService } from '@/services/adminService'
 import Home from '@/views/Home.vue'
 import Login from '@/views/Login.vue'
 import Profile from '@/views/Profile.vue'
 import Corridas from '@/views/Corridas.vue'
 import Mapa from '@/views/Mapa.vue'
+import PendingApproval from '@/views/PendingApproval.vue'
+import RegistrationRejected from '@/views/RegistrationRejected.vue'
+import AdminDashboard from '@/views/AdminDashboard.vue'
 
 const routes = [
   {
     path: '/',
     name: 'Home',
     component: Home,
-    meta: { requiresAuth: true, requiresProfile: true }
+    meta: { requiresAuth: true, requiresApproval: true, requiresProfile: true }
   },
   {
     path: '/login',
@@ -25,25 +30,43 @@ const routes = [
     path: '/corridas',
     name: 'Corridas',
     component: Corridas,
-    meta: { requiresAuth: true, requiresProfile: true }
+    meta: { requiresAuth: true, requiresApproval: true, requiresProfile: true }
   },
   {
     path: '/mapa',
     name: 'Mapa',
     component: Mapa,
-    meta: { requiresAuth: true, requiresProfile: true }
+    meta: { requiresAuth: true, requiresApproval: true, requiresProfile: true }
   },
   {
     path: '/perfil',
     name: 'Profile',
     component: Profile,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true, requiresApproval: true }
   },
   {
     path: '/perfil/:id',
     name: 'PublicProfile',
     component: () => import('@/views/PublicProfile.vue'),
-    meta: { requiresAuth: true, requiresProfile: true }
+    meta: { requiresAuth: true, requiresApproval: true, requiresProfile: true }
+  },
+  {
+    path: '/pending-approval',
+    name: 'PendingApproval',
+    component: PendingApproval,
+    meta: { requiresAuth: true, layout: 'blank' }
+  },
+  {
+    path: '/registration-rejected',
+    name: 'RegistrationRejected',
+    component: RegistrationRejected,
+    meta: { requiresAuth: true, layout: 'blank' }
+  },
+  {
+    path: '/admin/users',
+    name: 'AdminDashboard',
+    component: AdminDashboard,
+    meta: { requiresAuth: true, requiresAdmin: true }
   }
 ]
 
@@ -81,32 +104,67 @@ const checkProfileComplete = async (userId) => {
   }
 }
 
-// Navigation guard atualizado
+// Navigation guard atualizado com verificação de aprovação
 router.beforeEach(async (to, from, next) => {
   const requiresAuth = to.matched.some(record => record.meta.requiresAuth)
+  const requiresApproval = to.matched.some(record => record.meta.requiresApproval)
   const requiresProfile = to.matched.some(record => record.meta.requiresProfile)
+  const requiresAdmin = to.matched.some(record => record.meta.requiresAdmin)
   
   if (requiresAuth) {
     try {
-      // Aguarda o Firebase inicializar e verificar se há usuário logado
       const currentUser = await getCurrentUser()
       
-      if (currentUser) {
-        // Se a rota requer perfil completo, verifica
-        if (requiresProfile && to.name !== 'Profile') {
-          const profileComplete = await checkProfileComplete(currentUser.uid)
-          
-          if (!profileComplete) {
-            // Redireciona para perfil se não estiver completo
-            next('/perfil')
-            return
-          }
+      if (!currentUser) {
+        next('/login')
+        return
+      }
+      
+      // Verificar se é admin
+      if (requiresAdmin) {
+        const isAdmin = await adminService.isAdmin(currentUser.email)
+        if (!isAdmin) {
+          next('/')
+          return
+        }
+        next()
+        return
+      }
+      
+      // Verificar status de aprovação
+      if (requiresApproval) {
+        const userStatus = await authService.checkUserStatus(currentUser.uid)
+        
+        // Se pendente, redireciona para página de aguardo
+        if (userStatus.status === 'pending' && to.name !== 'PendingApproval') {
+          next('/pending-approval')
+          return
         }
         
-        next()
-      } else {
-        next('/login')
+        // Se rejeitado, redireciona para página de rejeição
+        if (userStatus.status === 'rejected' && to.name !== 'RegistrationRejected') {
+          next('/registration-rejected')
+          return
+        }
+        
+        // Se não está aprovado, bloqueia acesso
+        if (userStatus.status !== 'approved') {
+          next('/pending-approval')
+          return
+        }
       }
+      
+      // Verificar perfil completo
+      if (requiresProfile && to.name !== 'Profile') {
+        const profileComplete = await checkProfileComplete(currentUser.uid)
+        
+        if (!profileComplete) {
+          next('/perfil')
+          return
+        }
+      }
+      
+      next()
     } catch (error) {
       console.error('Erro ao verificar autenticação:', error)
       next('/login')
@@ -115,12 +173,18 @@ router.beforeEach(async (to, from, next) => {
     try {
       const currentUser = await getCurrentUser()
       if (currentUser) {
-        // Após login, sempre redireciona para perfil primeiro
-        const profileComplete = await checkProfileComplete(currentUser.uid)
-        if (!profileComplete) {
-          next('/perfil')
+        const userStatus = await authService.checkUserStatus(currentUser.uid)
+        
+        // Redireciona baseado no status
+        if (userStatus.status === 'pending') {
+          next('/pending-approval')
+        } else if (userStatus.status === 'rejected') {
+          next('/registration-rejected')
+        } else if (userStatus.status === 'approved') {
+          const profileComplete = await checkProfileComplete(currentUser.uid)
+          next(profileComplete ? '/' : '/perfil')
         } else {
-          next('/')
+          next('/pending-approval')
         }
       } else {
         next()

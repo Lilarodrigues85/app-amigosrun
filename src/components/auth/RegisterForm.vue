@@ -171,8 +171,8 @@ const handleRegister = async () => {
 
   try {
     await register(form.value.email, form.value.password, form.value.name, form.value.stats)
-    // Após registro, redireciona para perfil para completar dados
-    router.push('/perfil')
+    // O router guard vai redirecionar automaticamente
+    router.push('/')
   } catch (err) {
     error.value = err.message
   } finally {
@@ -186,8 +186,8 @@ const handleGoogleLogin = async () => {
 
   try {
     await loginWithGoogle()
-    // Redireciona para perfil após login com Google
-    router.push('/perfil')
+    // O router guard vai redirecionar automaticamente
+    router.push('/')
   } catch (err) {
     error.value = err.message
   } finally {

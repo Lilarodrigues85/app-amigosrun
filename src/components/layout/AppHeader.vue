@@ -11,7 +11,9 @@
         <router-link to="/" class="nav-link">Início</router-link>
         <router-link to="/corridas" class="nav-link">Corridas</router-link>
         <router-link to="/mapa" class="nav-link">Mapa</router-link>
-        <router-link to="/perfil" class="nav-link">Perfil</router-link>
+        <router-link v-if="isAdmin" to="/admin/users" class="nav-link nav-link-admin">
+          👤 Admin
+        </router-link>
       </nav>
 
       <!-- Navigation limitada para perfil incompleto -->
@@ -50,14 +52,18 @@
         
         <!-- Avatar e Botão -->
         <div class="user-actions">
-          <img :src="user.photoURL || '/default-avatar.png'" :alt="user.displayName" class="avatar">
+          <router-link to="/perfil" class="avatar-link" title="Meu Perfil">
+            <img :src="user.photoURL || '/default-avatar.png'" :alt="user.displayName" class="avatar">
+          </router-link>
           <button @click="logout" class="logout-btn">Sair</button>
         </div>
       </div>
       
       <!-- User Menu Simples (perfil incompleto) -->
       <div class="user-menu" v-else-if="user">
-        <img :src="user.photoURL || '/default-avatar.png'" :alt="user.displayName" class="avatar">
+        <router-link to="/perfil" class="avatar-link" title="Meu Perfil">
+          <img :src="user.photoURL || '/default-avatar.png'" :alt="user.displayName" class="avatar">
+        </router-link>
         <button @click="logout" class="logout-btn">Sair</button>
       </div>
 
@@ -74,7 +80,10 @@
       <router-link to="/" class="nav-link-mobile" @click="closeMobileMenu">Início</router-link>
       <router-link to="/corridas" class="nav-link-mobile" @click="closeMobileMenu">Corridas</router-link>
       <router-link to="/mapa" class="nav-link-mobile" @click="closeMobileMenu">Mapa</router-link>
-      <router-link to="/perfil" class="nav-link-mobile" @click="closeMobileMenu">Perfil</router-link>
+      <router-link to="/perfil" class="nav-link-mobile" @click="closeMobileMenu">👤 Perfil</router-link>
+      <router-link v-if="isAdmin" to="/admin/users" class="nav-link-mobile nav-link-admin" @click="closeMobileMenu">
+        🔧 Admin
+      </router-link>
       <button @click="logout" class="logout-btn-mobile">Sair</button>
     </nav>
 
@@ -91,12 +100,14 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { useAuth } from '@/composables/useAuth'
 import { useRouter, useRoute } from 'vue-router'
 import { userService } from '@/services/userService'
+import { adminService } from '@/services/adminService'
 
 const { user, logout: authLogout } = useAuth()
 const router = useRouter()
 const route = useRoute()
 const showMobileMenu = ref(false)
 const profileComplete = ref(false)
+const isAdmin = ref(false)
 
 // Estatísticas do usuário
 const userStats = ref({
@@ -114,6 +125,7 @@ const checkProfile = async () => {
   if (!user.value) {
     console.log('⚠️ [AppHeader] Nenhum usuário autenticado')
     profileComplete.value = false
+    isAdmin.value = false
     return
   }
   
@@ -125,6 +137,12 @@ const checkProfile = async () => {
     
     const isComplete = profile && profile.name && profile.name.trim() !== ''
     profileComplete.value = isComplete
+    
+    // Verificar se é admin
+    if (user.value.email) {
+      isAdmin.value = await adminService.isAdmin(user.value.email)
+      console.log('👤 [AppHeader] É admin?', isAdmin.value)
+    }
     
     // Carregar estatísticas
     if (profile && profile.stats) {
@@ -141,6 +159,7 @@ const checkProfile = async () => {
   } catch (error) {
     console.error('❌ [AppHeader] Erro ao verificar perfil:', error)
     profileComplete.value = false
+    isAdmin.value = false
   }
 }
 
@@ -170,6 +189,7 @@ watch(user, (newUser) => {
     checkProfile()
   } else {
     profileComplete.value = false
+    isAdmin.value = false
   }
 })
 
@@ -255,6 +275,17 @@ const logout = async () => {
   animation: pulse-profile 2s ease-in-out infinite;
 }
 
+.nav-link-admin {
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.3) 0%, rgba(255, 107, 107, 0.3) 100%);
+  border: 2px solid rgba(220, 53, 69, 0.5);
+  font-weight: 600;
+}
+
+.nav-link-admin:hover {
+  background: linear-gradient(135deg, rgba(220, 53, 69, 0.4) 0%, rgba(255, 107, 107, 0.4) 100%);
+  border-color: rgba(220, 53, 69, 0.7);
+}
+
 @keyframes pulse-profile {
   0%, 100% { 
     box-shadow: 0 0 0 0 rgba(255, 193, 7, 0.4);
@@ -320,6 +351,11 @@ const logout = async () => {
   gap: 1rem;
 }
 
+.avatar-link {
+  display: block;
+  line-height: 0;
+}
+
 .avatar {
   width: 40px;
   height: 40px;
@@ -327,11 +363,13 @@ const logout = async () => {
   border: 2px solid rgba(255, 255, 255, 0.3);
   transition: all 0.3s ease;
   cursor: pointer;
+  display: block;
 }
 
 .avatar:hover {
   border-color: rgba(255, 255, 255, 0.6);
-  transform: scale(1.05);
+  transform: scale(1.1);
+  box-shadow: 0 0 15px rgba(255, 255, 255, 0.4);
 }
 
 .logout-btn {

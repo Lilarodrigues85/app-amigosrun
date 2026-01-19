@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Corrigir Documento Admin</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 2rem;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 3rem;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        
+        h1 {
+            color: #dc3545;
+            margin-bottom: 1rem;
+            font-size: 2rem;
+        }
+        
+        .problem {
+            background: #f8d7da;
+            border-left: 4px solid #dc3545;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 8px;
+            color: #721c24;
+        }
+        
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+        
+        .wrong, .correct {
+            padding: 1.5rem;
+            border-radius: 12px;
+            border: 3px solid;
+        }
+        
+        .wrong {
+            background: #f8d7da;
+            border-color: #dc3545;
+        }
+        
+        .correct {
+            background: #d4edda;
+            border-color: #28a745;
+        }
+        
+        .wrong h3 {
+            color: #dc3545;
+            margin-bottom: 1rem;
+        }
+        
+        .correct h3 {
+            color: #28a745;
+            margin-bottom: 1rem;
+        }
+        
+        .code-box {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+        
+        .step {
+            background: #f8f9fa;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid #667eea;
+        }
+        
+        .step h2 {
+            color: #667eea;
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+        
+        .step-number {
+            display: inline-block;
+            width: 35px;
+            height: 35px;
+            background: #667eea;
+            color: white;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 35px;
+            font-weight: bold;
+            margin-right: 0.5rem;
+            font-size: 1.1rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 0.5rem 0.5rem 0.5rem 0;
+            border: none;
+            cursor: pointer;
+        }
+        
+        .btn:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+        
+        .btn-danger {
+            background: #dc3545;
+        }
+        
+        .btn-danger:hover {
+            background: #c82333;
+        }
+        
+        .btn-success {
+            background: #28a745;
+        }
+        
+        .btn-success:hover {
+            background: #218838;
+        }
+        
+        .copy-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            margin-left: 0.5rem;
+        }
+        
+        .copy-btn:hover {
+            background: #218838;
+        }
+        
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+        
+        .table th,
+        .table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .table tr:hover {
+            background: #f8f9fa;
+        }
+        
+        .warning {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 1rem;
+            margin: 1rem 0;
+            border-radius: 8px;
+            color: #856404;
+        }
+        
+        .highlight {
+            background: #ffeb3b;
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        
+        .visual-guide {
+            background: #f8f9fa;
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 1.5rem 0;
+            font-family: monospace;
+            white-space: pre;
+            overflow-x: auto;
+            border: 2px solid #667eea;
+            font-size: 0.85rem;
+        }
+        
+        @media (max-width: 768px) {
+            .comparison {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Corrigir Documento Admin</h1>
+        
+        <div class="problem">
+            <strong style="font-size: 1.2rem;">❌ Problema Identificado:</strong><br><br>
+            O documento na collection <code>admins</code> está com o <strong>ID errado</strong>.<br>
+            O ID deve ser o <span class="highlight">EMAIL</span>, não o UID do usuário!
+        </div>
+        
+        <div class="comparison">
+            <div class="wrong">
+                <h3>❌ ERRADO (Atual)</h3>
+                <div class="code-box">
+admins/
+  └── 93Yudl1jM7SVQMHAWnwmlcngHBw2
+      ↑ UID (errado!)
+                </div>
+            </div>
+            
+            <div class="correct">
+                <h3>✅ CORRETO (Deve ser)</h3>
+                <div class="code-box">
+admins/
+  └── dalila.analistadesistema@gmail.com
+      ↑ EMAIL (correto!)
+                </div>
+            </div>
+        </div>
+        
+        <div class="step">
+            <h2><span class="step-number">1</span> Acesse o Firebase Console</h2>
+            <div class="code-box">https://console.firebase.google.com</div>
+            <a href="https://console.firebase.google.com" target="_blank" class="btn">🚀 Abrir Firebase Console</a>
+        </div>
+        
+        <div class="step">
+            <h2><span class="step-number">2</span> Vá em Firestore Database</h2>
+            <p>No menu lateral → <strong>Firestore Database</strong></p>
+        </div>
+        
+        <div class="step">
+            <h2><span class="step-number">3</span> Deletar Documento Errado</h2>
+            <ol style="margin-left: 1.5rem; line-height: 2;">
+                <li>Clique na collection <strong>admins</strong></li>
+                <li>Encontre o documento: <code>93Yudl1jM7SVQMHAWnwmlcngHBw2</code></li>
+                <li>Clique nos <strong>3 pontinhos</strong> (⋮) ao lado</li>
+                <li>Clique em <strong>Excluir documento</strong></li>
+                <li>Confirme a exclusão</li>
+            </ol>
+        </div>
+        
+        <div class="step">
+            <h2><span class="step-number">4</span> Criar Documento Correto</h2>
+            
+            <div class="warning">
+                <strong>⚠️ SUPER IMPORTANTE:</strong><br>
+                O ID do documento DEVE ser o email completo!
+            </div>
+            
+            <p><strong>1. Clique em "Adicionar documento"</strong></p>
+            
+            <p style="margin-top: 1rem;"><strong>2. ID do documento:</strong></p>
+            <div class="code-box">
+                dalila.analistadesistema@gmail.com
+                <button class="copy-btn" onclick="copyText('dalila.analistadesistema@gmail.com')">📋 Copiar</button>
+            </div>
+            
+            <p><strong>3. Adicione os campos:</strong></p>
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Campo</th>
+                        <th>Tipo</th>
+                        <th>Valor</th>
+                        <th>Ação</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>email</strong></td>
+                        <td>string</td>
+                        <td>dalila.analistadesistema@gmail.com</td>
+                        <td><button class="copy-btn" onclick="copyText('dalila.analistadesistema@gmail.com')">📋</button></td>
+                    </tr>
+                    <tr>
+                        <td><strong>role</strong></td>
+                        <td>string</td>
+                        <td>admin</td>
+                        <td><button class="copy-btn" onclick="copyText('admin')">📋</button></td>
+                    </tr>
+                    <tr>
+                        <td><strong>name</strong></td>
+                        <td>string</td>
+                        <td>Dalila Rodrigues</td>
+                        <td><button class="copy-btn" onclick="copyText('Dalila Rodrigues')">📋</button></td>
+                    </tr>
+                    <tr>
+                        <td><strong>createdAt</strong></td>
+                        <td>timestamp</td>
+                        <td>[Use o seletor de timestamp]</td>
+                        <td>-</td>
+                    </tr>
+                </tbody>
+            </table>
+            
+            <p><strong>4. Clique em "Salvar"</strong></p>
+        </div>
+        
+        <div class="visual-guide">
+ANTES (Errado):
+┌─────────────────────────────────────────────┐
+│  admins                                     │
+├─────────────────────────────────────────────┤
+│  📄 93Yudl1jM7SVQMHAWnwmlcngHBw2           │ ← DELETAR!
+│     ├── email: "dalila.analistadesistema…" │
+│     ├── role: "admin"                       │
+│     └── name: "Dalila Rodrigues"            │
+└─────────────────────────────────────────────┘
+
+DEPOIS (Correto):
+┌─────────────────────────────────────────────┐
+│  admins                                     │
+├─────────────────────────────────────────────┤
+│  📄 dalila.analistadesistema@gmail.com     │ ← CRIAR!
+│     ├── email: "dalila.analistadesistema…" │
+│     ├── role: "admin"                       │
+│     └── name: "Dalila Rodrigues"            │
+└─────────────────────────────────────────────┘
+        </div>
+        
+        <div class="step">
+            <h2><span class="step-number">5</span> Limpar Cache e Testar</h2>
+            <ol style="margin-left: 1.5rem; line-height: 2;">
+                <li>Pressione <code>Ctrl + Shift + Delete</code></li>
+                <li>Marque "Cookies e dados de sites"</li>
+                <li>Clique em "Limpar dados"</li>
+                <li>Faça <strong>logout</strong> da aplicação</li>
+                <li>Feche o navegador</li>
+                <li>Abra novamente e faça <strong>login</strong></li>
+                <li>Verifique se o botão <strong>"👤 Admin"</strong> aparece no header</li>
+            </ol>
+            <br>
+            <a href="http://localhost:5173/admin/users" target="_blank" class="btn btn-success">
+                🎯 Testar Painel Admin
+            </a>
+        </div>
+        
+        <div style="margin-top: 2rem; padding: 1.5rem; background: #e7f3ff; border-radius: 12px; border-left: 4px solid #0066cc;">
+            <strong style="color: #0066cc; font-size: 1.1rem;">💡 Por que o ID deve ser o email?</strong><br><br>
+            O sistema busca o documento usando o email do usuário logado:<br><br>
+            <code style="background: white; padding: 0.5rem; border-radius: 4px; display: block; margin: 0.5rem 0;">
+                doc(db, 'admins', user.email)<br>
+                // Busca: admins/dalila.analistadesistema@gmail.com
+            </code><br>
+            Se o ID for diferente (como o UID), o documento não é encontrado!
+        </div>
+        
+        <div style="margin-top: 2rem; padding-top: 2rem; border-top: 2px solid #e9ecef;">
+            <h2 style="color: #667eea; margin-bottom: 1rem;">🔗 Links Úteis</h2>
+            <a href="https://console.firebase.google.com" target="_blank" class="btn">Firebase Console</a>
+            <a href="http://localhost:5173" target="_blank" class="btn">Aplicação</a>
+            <a href="docs/CORRIGIR_DOCUMENTO_ADMIN.md" class="btn">Documentação Completa</a>
+        </div>
+    </div>
+    
+    <script>
+        function copyText(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('✅ Copiado: ' + text);
+            }).catch(err => {
+                console.error('Erro ao copiar:', err);
+                alert('❌ Erro ao copiar. Copie manualmente: ' + text);
+            });
+        }
+    </script>
+</body>
+</html>

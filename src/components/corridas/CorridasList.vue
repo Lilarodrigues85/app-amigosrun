@@ -27,8 +27,15 @@
         <div class="corrida-content">
           <div class="corrida-header">
             <h3>{{ corrida.titulo }}</h3>
-            <span v-if="corrida.distancia" class="distance-badge">
-              {{ corrida.distancia }}
+          </div>
+
+          <div v-if="corrida.distancias && corrida.distancias.length > 0" class="distancias-badges">
+            <span 
+              v-for="distancia in corrida.distancias" 
+              :key="distancia"
+              class="distance-badge"
+            >
+              {{ distancia }}
             </span>
           </div>
 
@@ -43,9 +50,16 @@
               <span>{{ corrida.local }}</span>
             </div>
             
-            <div v-if="corrida.valor" class="info-item">
+            <div v-if="corrida.valor || corrida.valor60" class="info-item valores">
               <span class="icon">💰</span>
-              <span>R$ {{ formatPrice(corrida.valor) }}</span>
+              <div class="valores-container">
+                <span v-if="corrida.valor" class="valor-item">
+                  Geral: R$ {{ formatPrice(corrida.valor) }}
+                </span>
+                <span v-if="corrida.valor60" class="valor-item valor-60">
+                  60+: R$ {{ formatPrice(corrida.valor60) }}
+                </span>
+              </div>
             </div>
             
             <div v-if="corrida.vagas" class="info-item">
@@ -54,28 +68,37 @@
             </div>
           </div>
 
-          <div v-if="corrida.descricao" class="corrida-description">
-            <p>{{ corrida.descricao }}</p>
+          <div v-if="corrida.descricao" class="corrida-descricao">
+            <div 
+              v-for="(linha, index) in formatDescricao(corrida.descricao)" 
+              :key="index"
+              class="descricao-item"
+            >
+              <span class="descricao-icon">{{ linha.icon }}</span>
+              <span class="descricao-text">{{ linha.text }}</span>
+            </div>
           </div>
 
           <div class="corrida-actions">
             <PresencaButton :corrida-id="corrida.id" />
             
-            <button 
-              v-if="corrida.linkInscricao" 
-              @click="openLink(corrida.linkInscricao)"
-              class="btn-inscricao"
-            >
-              Inscrever-se
-            </button>
-            
-            <button 
-              v-if="canEdit(corrida)"
-              @click="editCorrida(corrida)"
-              class="btn-edit"
-            >
-              Editar
-            </button>
+            <div class="corrida-actions-buttons">
+              <button 
+                v-if="corrida.linkInscricao" 
+                @click="openLink(corrida.linkInscricao)"
+                class="btn-inscricao"
+              >
+                Inscrever-se
+              </button>
+              
+              <button 
+                v-if="canEdit(corrida)"
+                @click="editCorrida(corrida)"
+                class="btn-edit"
+              >
+                Editar
+              </button>
+            </div>
           </div>
 
           <div class="corrida-footer">
@@ -144,6 +167,35 @@ const formatDate = (dateString) => {
 
 const formatPrice = (price) => {
   return parseFloat(price).toFixed(2).replace('.', ',')
+}
+
+const formatDescricao = (descricao) => {
+  if (!descricao) return []
+  
+  // Divide a descrição por linhas
+  const linhas = descricao.split('\n').filter(linha => linha.trim())
+  
+  return linhas.map(linha => {
+    // Remove espaços extras
+    const texto = linha.trim()
+    
+    // Detecta se a linha começa com emoji
+    const emojiMatch = texto.match(/^([\u{1F300}-\u{1F9FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}])/u)
+    
+    if (emojiMatch) {
+      // Se tem emoji no início, usa ele
+      return {
+        icon: emojiMatch[0],
+        text: texto.substring(emojiMatch[0].length).trim()
+      }
+    } else {
+      // Se não tem emoji, usa um padrão
+      return {
+        icon: '•',
+        text: texto
+      }
+    }
+  })
 }
 
 const canEdit = (corrida) => {
@@ -242,8 +294,8 @@ onMounted(() => {
 
 .corridas-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-  gap: 2rem;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 1.5rem;
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -251,7 +303,7 @@ onMounted(() => {
 .corrida-card {
   background: rgba(255,255,255,0.1);
   backdrop-filter: blur(10px);
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid rgba(255,255,255,0.2);
   overflow: hidden;
   transition: all 0.3s ease;
@@ -263,40 +315,53 @@ onMounted(() => {
 }
 
 .corrida-image {
-  height: 200px;
+  height: 160px;
   overflow: hidden;
+  background: rgba(0,0,0,0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .corrida-image img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
+  object-position: center;
 }
 
 .corrida-content {
-  padding: 1.5rem;
+  padding: 1.25rem;
 }
 
 .corrida-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
 }
 
 .corrida-header h3 {
   color: white;
-  margin: 0;
-  flex: 1;
+  margin: 0 0 0.75rem 0;
+  font-size: 1.1rem;
+}
+
+.distancias-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
 }
 
 .distance-badge {
-  background: rgba(255,255,255,0.2);
+  background: rgba(59, 130, 246, 0.3);
   color: white;
-  padding: 0.25rem 0.75rem;
+  padding: 0.35rem 0.85rem;
   border-radius: 12px;
   font-size: 0.8rem;
-  margin-left: 1rem;
+  border: 1px solid rgba(59, 130, 246, 0.5);
+  font-weight: 500;
 }
 
 .corrida-info {
@@ -308,28 +373,83 @@ onMounted(() => {
   align-items: center;
   color: rgba(255,255,255,0.9);
   margin-bottom: 0.5rem;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+}
+
+.info-item.valores {
+  align-items: flex-start;
+}
+
+.valores-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.valor-item {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.9);
+}
+
+.valor-60 {
+  color: rgba(251, 191, 36, 1);
+  font-weight: 600;
 }
 
 .info-item .icon {
   margin-right: 0.5rem;
-  width: 20px;
+  width: 18px;
+  font-size: 0.9rem;
 }
 
-.corrida-description {
-  margin-bottom: 1.5rem;
+.corrida-descricao {
+  background: rgba(139, 92, 246, 0.15);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem;
+  margin-bottom: 1rem;
 }
 
-.corrida-description p {
-  color: rgba(255,255,255,0.8);
-  line-height: 1.5;
-  margin: 0;
+.descricao-item {
+  display: flex;
+  align-items: flex-start;
+  color: rgba(255,255,255,0.95);
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+.descricao-item:last-child {
+  margin-bottom: 0;
+}
+
+.descricao-icon {
+  margin-right: 0.6rem;
+  font-size: 1rem;
+  min-width: 20px;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.descricao-text {
+  flex: 1;
 }
 
 .corrida-actions {
   display: flex;
+  flex-direction: column;
   gap: 0.75rem;
-  margin-bottom: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.corrida-actions > :first-child {
+  width: 100%;
+}
+
+.corrida-actions-buttons {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
 }
 
 .btn-inscricao,
@@ -338,14 +458,14 @@ onMounted(() => {
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   transition: all 0.3s ease;
+  flex: 1;
 }
 
 .btn-inscricao {
   background: rgba(16, 185, 129, 0.8);
   color: white;
-  flex: 1;
 }
 
 .btn-inscricao:hover {
@@ -364,7 +484,7 @@ onMounted(() => {
 
 .corrida-footer {
   color: rgba(255,255,255,0.6);
-  font-size: 0.8rem;
+  font-size: 0.75rem;
 }
 
 .modal-overlay {
@@ -373,19 +493,42 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0,0,0,0.8);
+  background: rgba(0,0,0,0.75);
+  backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1000;
   padding: 1rem;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 .modal-content {
   width: 100%;
-  max-width: 600px;
+  max-width: 800px;
   max-height: 90vh;
-  overflow-y: auto;
+  overflow: visible;
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 @media (max-width: 768px) {
